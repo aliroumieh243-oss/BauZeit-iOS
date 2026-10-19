@@ -23,29 +23,34 @@ jobs:
           cd ios
           xcodegen generate
 
-      - name: Build iOS Archive
+      - name: Build Native iOS App Bundle
         run: |
           cd ios
           xcodebuild -project BauZeit.xcodeproj \
                      -scheme BauZeit \
                      -sdk iphoneos \
                      -configuration Release \
-                     -archivePath $PWD/build/BauZeit.xcarchive \
-                     CODE_SIGN_IDENTITY="" \
+                     -destination 'generic/platform=iOS' \
+                     -derivedDataPath $PWD/DerivedData \
+                     CODE_SIGN_IDENTITY="-" \
                      CODE_SIGNING_REQUIRED=NO \
-                     CODE_SIGNING_ALLOWED=NO \
-                     archive
+                     CODE_SIGNING_ALLOWED=YES \
+                     AD_HOC_CODE_SIGNING_ALLOWED=YES \
+                     COMPILER_INDEX_STORE_ENABLE=NO \
+                     clean build
 
       - name: Package into IPA
         run: |
-          cd ios/build
-          mkdir -p Payload
-          cp -r BauZeit.xcarchive/Products/Applications/BauZeit.app Payload/
-          zip -r BauZeit.ipa Payload
+          cd ios
+          mkdir -p build/Payload
+          cp -r DerivedData/Build/Products/Release-iphoneos/BauZeit.app build/Payload/
+          cd build
+          zip -r -9 BauZeit.ipa Payload
           echo "IPA erfolgreich erstellt!"
+          ls -lh BauZeit.ipa
 
       - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: BauZeit-iOS-App
+          name: BauZeit-Native-iOS-App
           path: ios/build/BauZeit.ipa
