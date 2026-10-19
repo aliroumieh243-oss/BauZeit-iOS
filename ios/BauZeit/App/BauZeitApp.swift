@@ -1,7 +1,30 @@
 import SwiftUI
+#if canImport(FirebaseCore)
+import FirebaseCore
+#endif
+
+#if os(iOS)
+import UIKit
+
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(
+        _ application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil
+    ) -> Bool {
+        #if canImport(FirebaseCore)
+        FirebaseApp.configure()
+        #endif
+        return true
+    }
+}
+#endif
 
 @main
 struct BauZeitApp: App {
+    #if os(iOS)
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
+    #endif
+
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var timeVM = TimeTrackingViewModel()
     

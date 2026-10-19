@@ -13,11 +13,18 @@ let package = Package(
             targets: ["BauZeit"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/firebase/firebase-ios-sdk.git", from: "11.0.0")
+    ],
     targets: [
         .target(
             name: "BauZeit",
+            dependencies: [
+                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
+                .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk")
+            ],
             path: "BauZeit",
-            exclude: ["Info.plist", "Google-Client.plist"]
+            exclude: ["Info.plist", "Google-Client.plist", "GoogleService-Info.plist"]
         )
     ]
 )
