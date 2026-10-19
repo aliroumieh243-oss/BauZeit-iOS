@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#007AFF" />
+      <stop offset="100%" stop-color="#0051C6" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-opacity="0.3" />
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="115" fill="url(#bg)" />
+  <g transform="translate(106, 106)" filter="url(#shadow)">
+    <!-- Clock circle -->
+    <circle cx="150" cy="150" r="130" fill="none" stroke="#FFFFFF" stroke-width="22" stroke-linecap="round"/>
+    <!-- Hardhat / Construction hammer overlay accent -->
+    <path d="M150 45 V150 L210 185" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="150" cy="150" r="14" fill="#FFFFFF"/>
+    <!-- Small badge -->
+    <circle cx="225" cy="75" r="30" fill="#34C759"/>
+    <path d="M213 75 L222 84 L237 67" stroke="#FFFFFF" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+</svg>

@@ -1,0 +1,41 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner() {
+      return isAuthenticated() && 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner';
+    }
+    
+    function isUserSelf(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // User profiles: owner can view & manage all, workers can only view their own
+    match /users/{userId} {
+      allow read: if isOwner() || isUserSelf(userId);
+      allow write: if isOwner() || isUserSelf(userId);
+    }
+
+    // Time entries: STRICT ISOLATION
+    // Worker can only read/write their own entries!
+    // Owner can read and manage all entries.
+    match /time_entries/{entryId} {
+      allow read: if isOwner() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow create: if isOwner() || (isAuthenticated() && request.resource.data.userId == request.auth.uid);
+      allow update, delete: if isOwner() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+
+    // Monthly settlements (Anzahlungen, Jasin Betriebskosten):
+    // Only owner can write, workers can read their own settlement
+    match /monthly_settlements/{settlementId} {
+      allow read: if isOwner() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow write: if isOwner();
+    }
+  }
+}

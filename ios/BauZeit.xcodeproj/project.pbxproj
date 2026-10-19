@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -13,6 +13,7 @@
 		5CDD2DCA991CF1DF23972541 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837FF572DD1C2FA4DD31419E /* LoginView.swift */; };
 		63D71C2483A2B9413CE257A9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D60DDEFC8DFB248D10BE5 /* CalendarView.swift */; };
 		A14509707CCC4AF1D9B0F791 /* TimeEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CEB3D4A4220B6C41300A9C2 /* TimeEntrySheet.swift */; };
+		A68F8FAD510DDDA165928B80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 16F7526015D9DB8F627CE1BD /* Assets.xcassets */; };
 		AEF83F4CF86C3B7CBEE97086 /* WorkerSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD3DE9C03E61A89ECEE218A /* WorkerSummaryView.swift */; };
 		AFF0D53C77540511DFB4A888 /* OwnerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EAF2130136279DDF50AF6E1 /* OwnerDashboardView.swift */; };
 		BB623867BF92F280714266D6 /* TimeEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C5055AD80663FA2B9BD7F2 /* TimeEntry.swift */; };
@@ -29,6 +30,7 @@
 		0E7271431DA37B4E73565952 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
 		0FAE8BEF18F7B5AA80ED8E8A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		11EE6C34B49027A61D3FC57F /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		16F7526015D9DB8F627CE1BD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2CEB3D4A4220B6C41300A9C2 /* TimeEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntrySheet.swift; sourceTree = "<group>"; };
 		378162FF7D8938A26CDFC854 /* TimeCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeCalculations.swift; sourceTree = "<group>"; };
 		3C4D60DDEFC8DFB248D10BE5 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
@@ -67,6 +69,7 @@
 		62835E8AF4C0FB7F481C2854 /* BauZeit */ = {
 			isa = PBXGroup;
 			children = (
+				16F7526015D9DB8F627CE1BD /* Assets.xcassets */,
 				0FAE8BEF18F7B5AA80ED8E8A /* GoogleService-Info.plist */,
 				526C46846F8CA71B75EA3043 /* App */,
 				B902C276C789DAFA20A8ED23 /* Models */,
@@ -231,6 +234,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A68F8FAD510DDDA165928B80 /* Assets.xcassets in Resources */,
 				E46F507108F3B63FDD4721A6 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
