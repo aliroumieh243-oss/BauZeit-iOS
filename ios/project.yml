@@ -23,8 +23,6 @@ targets:
         buildPhase: resources
     dependencies:
       - package: Firebase
-        product: FirebaseCore
-      - package: Firebase
         product: FirebaseAnalytics
     info:
       path: BauZeit/Info.plist

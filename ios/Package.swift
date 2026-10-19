@@ -20,7 +20,6 @@ let package = Package(
         .target(
             name: "BauZeit",
             dependencies: [
-                .product(name: "FirebaseCore", package: "firebase-ios-sdk"),
                 .product(name: "FirebaseAnalytics", package: "firebase-ios-sdk")
             ],
             path: "BauZeit",

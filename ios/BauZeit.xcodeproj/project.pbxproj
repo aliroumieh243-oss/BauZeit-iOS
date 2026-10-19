@@ -12,7 +12,6 @@
 		3D986FD468E4F5A2CC3FE5D8 /* BauZeitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C032CE916DF61E6F14A1B0E9 /* BauZeitApp.swift */; };
 		5CDD2DCA991CF1DF23972541 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837FF572DD1C2FA4DD31419E /* LoginView.swift */; };
 		63D71C2483A2B9413CE257A9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D60DDEFC8DFB248D10BE5 /* CalendarView.swift */; };
-		7DA40B528E670091744DA9A2 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 223E3BA057967B66BE3C3107 /* FirebaseAnalytics */; };
 		A14509707CCC4AF1D9B0F791 /* TimeEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CEB3D4A4220B6C41300A9C2 /* TimeEntrySheet.swift */; };
 		AEF83F4CF86C3B7CBEE97086 /* WorkerSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD3DE9C03E61A89ECEE218A /* WorkerSummaryView.swift */; };
 		AFF0D53C77540511DFB4A888 /* OwnerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EAF2130136279DDF50AF6E1 /* OwnerDashboardView.swift */; };
@@ -21,7 +20,7 @@
 		D5425730B21D8382F7C03300 /* TimeTrackingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62024112609B8DBDF077916F /* TimeTrackingViewModel.swift */; };
 		D6E99645EFC62FF80C04040F /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EE6C34B49027A61D3FC57F /* ProfileView.swift */; };
 		E46F507108F3B63FDD4721A6 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 0FAE8BEF18F7B5AA80ED8E8A /* GoogleService-Info.plist */; };
-		EB3DEF63FE63FC937F7CEAAA /* FirebaseCore in Frameworks */ = {isa = PBXBuildFile; productRef = BDC295034217B57267AE63C0 /* FirebaseCore */; };
+		EB3DEF63FE63FC937F7CEAAA /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 223E3BA057967B66BE3C3107 /* FirebaseAnalytics */; };
 		EC509954CA11BA1E5C9DA216 /* UserProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E7271431DA37B4E73565952 /* UserProfile.swift */; };
 		F7F397A2FADD12367BDDE94E /* UIHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0FF282077C96E7696772729 /* UIHelpers.swift */; };
 /* End PBXBuildFile section */
@@ -50,8 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EB3DEF63FE63FC937F7CEAAA /* FirebaseCore in Frameworks */,
-				7DA40B528E670091744DA9A2 /* FirebaseAnalytics in Frameworks */,
+				EB3DEF63FE63FC937F7CEAAA /* FirebaseAnalytics in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -185,7 +183,6 @@
 			);
 			name = BauZeit;
 			packageProductDependencies = (
-				BDC295034217B57267AE63C0 /* FirebaseCore */,
 				223E3BA057967B66BE3C3107 /* FirebaseAnalytics */,
 			);
 			productName = BauZeit;
@@ -467,11 +464,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 2A585CBEBE6FC217582C3DBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
-		};
-		BDC295034217B57267AE63C0 /* FirebaseCore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 2A585CBEBE6FC217582C3DBD /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
