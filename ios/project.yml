@@ -30,6 +30,9 @@ targets:
         CFBundleIdentifier: de.bauzeit.app
         CFBundleShortVersionString: "1.0.0"
         CFBundleVersion: "1"
+        UILaunchScreen: {}
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
     settings:
       PRODUCT_BUNDLE_IDENTIFIER: de.bauzeit.app
       DEVELOPMENT_TEAM: ""
