@@ -1,0 +1,30 @@
+name: BauZeit
+options:
+  bundleIdPrefix: de.bauzeit
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  SWIFT_VERSION: "5.9"
+targets:
+  BauZeit:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: BauZeit
+        excludes:
+          - "**/*.plist"
+    info:
+      path: BauZeit/Info.plist
+      properties:
+        CFBundleIdentifier: de.bauzeit.app
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+    settings:
+      PRODUCT_BUNDLE_IDENTIFIER: de.bauzeit.app
+      DEVELOPMENT_TEAM: ""
+      CODE_SIGN_STYLE: Automatic
+      CURRENT_PROJECT_VERSION: 1
+      MARKETING_VERSION: 1.0.0
+      GENERATE_INFOPLIST_FILE: false
+      INFOPLIST_FILE: BauZeit/Info.plist

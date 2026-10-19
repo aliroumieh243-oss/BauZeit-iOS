@@ -1,0 +1,6 @@
+node_modules/
+dist/
+.build/
+ios/.build/
+*.DS_Store
+.env

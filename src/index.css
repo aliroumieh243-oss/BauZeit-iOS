@@ -1,0 +1,89 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+  --sal: env(safe-area-inset-left, 0px);
+  --sar: env(safe-area-inset-right, 0px);
+}
+
+/* iOS App Feel Optimizations */
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  background-color: #F2F2F7;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Plus Jakarta Sans", system-ui, sans-serif;
+  color: #1C1C1E;
+  background-color: #F2F2F7;
+  overflow-x: hidden;
+}
+
+/* Prevent unwanted pull-to-refresh reload in standalone iOS PWA */
+@media all and (display-mode: standalone) {
+  body {
+    overscroll-behavior-y: none;
+  }
+}
+
+/* Native iOS-style smooth scroll */
+.ios-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Safe area utilities */
+.pt-safe {
+  padding-top: max(env(safe-area-inset-top), 16px);
+}
+
+.pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 16px);
+}
+
+.pb-safe-tab {
+  padding-bottom: calc(env(safe-area-inset-bottom) + 80px);
+}
+
+/* iOS Glassmorphism */
+.ios-glass {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.12);
+}
+
+.ios-glass-card {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(15px);
+  -webkit-backdrop-filter: blur(15px);
+  border: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Touch feedback like native iOS UI buttons */
+.ios-touch {
+  transition: transform 0.12s ease, opacity 0.12s ease;
+}
+
+.ios-touch:active {
+  transform: scale(0.97);
+  opacity: 0.82;
+}
+
+/* Custom time/date picker appearance */
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+}
