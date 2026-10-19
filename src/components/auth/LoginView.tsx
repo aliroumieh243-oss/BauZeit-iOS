@@ -230,14 +230,6 @@ export const LoginView: React.FC = () => {
           </button>
         </form>
       </div>
-
-      <div className="text-center mt-6 text-xs text-slate-400">
-        {isFirebaseActive ? (
-          <span className="text-blue-600 font-semibold">● Google Cloud Firebase aktiv</span>
-        ) : (
-          <span>● Lokaler Speicher aktiv</span>
-        )}
-      </div>
     </div>
   );
 };

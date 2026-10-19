@@ -9,12 +9,10 @@ import { WorkerSummaryView } from './components/worker/WorkerSummaryView';
 import { ProfileView } from './components/profile/ProfileView';
 import { OwnerDashboard } from './components/owner/OwnerDashboard';
 import { TeamManagementView } from './components/owner/TeamManagementView';
-import { FirebaseConfigModal } from './components/owner/FirebaseConfigModal';
 
 const AppContent: React.FC = () => {
   const { currentUser, isOwner, isLoading } = useAuth();
   const [activeTab, setActiveTab] = useState<TabType>(isOwner ? 'overview' : 'calendar');
-  const [isFirebaseModalOpen, setIsFirebaseModalOpen] = useState(false);
 
   if (isLoading) {
     return (
@@ -45,9 +43,6 @@ const AppContent: React.FC = () => {
     } else if (activeTab === 'team') {
       pageTitle = 'Team & Sätze';
       pageSubtitle = 'Mitarbeiterverwaltung';
-    } else if (activeTab === 'settings') {
-      pageTitle = 'Google Cloud';
-      pageSubtitle = 'Firebase Synchronisierung';
     }
   } else {
     if (activeTab === 'calendar') {
@@ -67,7 +62,6 @@ const AppContent: React.FC = () => {
       <Header
         title={pageTitle}
         subtitle={pageSubtitle}
-        onOpenFirebaseModal={() => setIsFirebaseModalOpen(true)}
       />
 
       <main className="pt-2 animate-in fade-in duration-150">
@@ -78,22 +72,6 @@ const AppContent: React.FC = () => {
             )}
             {activeTab === 'calendar' && <CalendarView />}
             {activeTab === 'team' && <TeamManagementView />}
-            {activeTab === 'settings' && (
-              <div className="max-w-md mx-auto px-4 pt-2">
-                <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200">
-                  <h2 className="text-base font-bold text-slate-900 mb-2">Google Cloud & Firebase</h2>
-                  <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-                    Hier kannst du deine Google Cloud Firebase Anmeldedaten hinterlegen, um alle Zeiterfassungen live in der Firebase Firestore Cloud zu sichern und auf allen Geräten zu synchronisieren.
-                  </p>
-                  <button
-                    onClick={() => setIsFirebaseModalOpen(true)}
-                    className="ios-touch w-full py-3 px-4 rounded-2xl bg-blue-600 text-white font-bold text-xs shadow-md"
-                  >
-                    Firebase Konfiguration öffnen
-                  </button>
-                </div>
-              </div>
-            )}
           </>
         ) : (
           <>
@@ -106,19 +84,7 @@ const AppContent: React.FC = () => {
 
       <TabBar
         activeTab={activeTab}
-        onTabChange={tab => {
-          if (tab === 'settings') {
-            setIsFirebaseModalOpen(true);
-          } else {
-            setActiveTab(tab);
-          }
-        }}
-      />
-
-      {/* Global Firebase Config Modal */}
-      <FirebaseConfigModal
-        isOpen={isFirebaseModalOpen}
-        onClose={() => setIsFirebaseModalOpen(false)}
+        onTabChange={tab => setActiveTab(tab)}
       />
     </div>
   );

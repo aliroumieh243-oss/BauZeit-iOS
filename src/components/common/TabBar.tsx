@@ -1,8 +1,8 @@
 import React from 'react';
-import { Calendar, BarChart3, Users, Settings, User } from 'lucide-react';
+import { Calendar, BarChart3, Users, User } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
-export type TabType = 'overview' | 'calendar' | 'team' | 'settings' | 'summary' | 'profile';
+export type TabType = 'overview' | 'calendar' | 'team' | 'summary' | 'profile';
 
 interface TabBarProps {
   activeTab: TabType;
@@ -19,7 +19,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
           <>
             <button
               onClick={() => onTabChange('overview')}
-              className={`ios-touch flex flex-col items-center py-1 px-3 rounded-xl transition ${
+              className={`ios-touch flex flex-col items-center py-1 px-4 rounded-xl transition ${
                 activeTab === 'overview' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -29,7 +29,7 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
 
             <button
               onClick={() => onTabChange('calendar')}
-              className={`ios-touch flex flex-col items-center py-1 px-3 rounded-xl transition ${
+              className={`ios-touch flex flex-col items-center py-1 px-4 rounded-xl transition ${
                 activeTab === 'calendar' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
@@ -39,22 +39,12 @@ export const TabBar: React.FC<TabBarProps> = ({ activeTab, onTabChange }) => {
 
             <button
               onClick={() => onTabChange('team')}
-              className={`ios-touch flex flex-col items-center py-1 px-3 rounded-xl transition ${
+              className={`ios-touch flex flex-col items-center py-1 px-4 rounded-xl transition ${
                 activeTab === 'team' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
               }`}
             >
               <Users className="w-5 h-5 mb-0.5" />
               <span className="text-[11px] font-semibold">Team</span>
-            </button>
-
-            <button
-              onClick={() => onTabChange('settings')}
-              className={`ios-touch flex flex-col items-center py-1 px-3 rounded-xl transition ${
-                activeTab === 'settings' ? 'text-blue-600' : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <Settings className="w-5 h-5 mb-0.5" />
-              <span className="text-[11px] font-semibold">Cloud/Setup</span>
             </button>
           </>
         ) : (

@@ -1,15 +1,14 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, HardHat, LogOut, Cloud } from 'lucide-react';
+import { ShieldCheck, HardHat, LogOut } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
   subtitle?: string;
-  onOpenFirebaseModal?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ title, subtitle, onOpenFirebaseModal }) => {
-  const { isOwner, logout, isFirebaseActive } = useAuth();
+export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
+  const { isOwner, logout } = useAuth();
 
   return (
     <header className="sticky top-0 z-30 ios-glass pt-safe px-4 pb-3 transition-all">
@@ -33,20 +32,6 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle, onOpenFirebaseM
         </div>
 
         <div className="flex items-center gap-2">
-          {/* Firebase Connection status indicator */}
-          <button
-            onClick={onOpenFirebaseModal}
-            title={isFirebaseActive ? 'Firebase Cloud aktiv' : 'Lokaler Speicher / Firebase einrichten'}
-            className="ios-touch p-2 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 transition relative"
-          >
-            <Cloud className={`w-4 h-4 ${isFirebaseActive ? 'text-blue-600' : 'text-slate-400'}`} />
-            <span
-              className={`absolute top-1 right-1 w-2 h-2 rounded-full ring-2 ring-white ${
-                isFirebaseActive ? 'bg-blue-500 animate-pulse' : 'bg-amber-400'
-              }`}
-            />
-          </button>
-
           {/* Logout */}
           <button
             onClick={logout}
