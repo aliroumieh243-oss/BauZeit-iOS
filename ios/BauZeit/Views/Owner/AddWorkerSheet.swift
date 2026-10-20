@@ -88,12 +88,12 @@ struct AddWorkerSheet: View {
         let workerRate = Double(workerRateText.replacingOccurrences(of: ",", with: ".")) ?? 12.0
         let clientRate = Double(clientRateText.replacingOccurrences(of: ",", with: ".")) ?? 35.0
         
-        let success = authVM.addWorker(
-            displayName: name,
+        let success = authVM.addNewWorker(
+            name: name,
             email: email,
             workerRate: workerRate,
             clientRate: clientRate,
-            phoneNumber: phone.isEmpty ? nil : phone
+            phone: phone.isEmpty ? nil : phone
         )
         
         if success {
