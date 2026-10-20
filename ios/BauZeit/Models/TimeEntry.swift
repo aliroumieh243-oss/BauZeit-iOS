@@ -13,10 +13,11 @@ struct TimeEntry: Identifiable, Codable {
     var expenses: Double = 0.0 // Geld ausgegeben (z. B. Material, Werkzeug, Einkauf)
     var fuelExpenses: Double = 0.0 // Benzingeld / Spritkosten
     var expenseNote: String? = nil // Notiz zu den Ausgaben (z. B. "Tanken Shell")
+    var photoData: String? = nil // Base64 kodiertes Beleg- oder Baustellenfoto
     var updatedAt: Date = Date()
     
     enum CodingKeys: String, CodingKey {
-        case id, userId, date, startTime, endTime, breakMinutes, siteDescription, decimalHours, notes, expenses, fuelExpenses, expenseNote, updatedAt
+        case id, userId, date, startTime, endTime, breakMinutes, siteDescription, decimalHours, notes, expenses, fuelExpenses, expenseNote, photoData, updatedAt
     }
     
     init(
@@ -32,6 +33,7 @@ struct TimeEntry: Identifiable, Codable {
         expenses: Double = 0.0,
         fuelExpenses: Double = 0.0,
         expenseNote: String? = nil,
+        photoData: String? = nil,
         updatedAt: Date = Date()
     ) {
         self.id = id
@@ -46,6 +48,7 @@ struct TimeEntry: Identifiable, Codable {
         self.expenses = expenses
         self.fuelExpenses = fuelExpenses
         self.expenseNote = expenseNote
+        self.photoData = photoData
         self.updatedAt = updatedAt
     }
     
@@ -63,6 +66,7 @@ struct TimeEntry: Identifiable, Codable {
         self.expenses = try container.decodeIfPresent(Double.self, forKey: .expenses) ?? 0.0
         self.fuelExpenses = try container.decodeIfPresent(Double.self, forKey: .fuelExpenses) ?? 0.0
         self.expenseNote = try container.decodeIfPresent(String.self, forKey: .expenseNote)
+        self.photoData = try container.decodeIfPresent(String.self, forKey: .photoData)
         self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
     }
 }

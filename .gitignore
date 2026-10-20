@@ -4,3 +4,4 @@ dist/
 ios/.build/
 *.DS_Store
 .env
+.firebase/

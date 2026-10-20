@@ -1,7 +1,8 @@
 import React from 'react';
 import { DayCalendarInfo } from '../../types';
-import { formatHours, formatBreakMinutes } from '../../utils/timeCalculations';
-import { Clock, MapPin, Plus, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { formatHours, formatBreakMinutes, formatCurrency } from '../../utils/timeCalculations';
+import { t } from '../../utils/language';
+import { Clock, MapPin, Plus, ChevronRight, Camera, Fuel, Banknote } from 'lucide-react';
 
 interface DayItemProps {
   dayInfo: DayCalendarInfo;
@@ -9,21 +10,21 @@ interface DayItemProps {
 }
 
 export const DayItem: React.FC<DayItemProps> = ({ dayInfo, onClick }) => {
-  const { date, dayOfWeek, dayNumber, formattedDate, isWeekend, entry } = dayInfo;
+  const { dayOfWeek, dayNumber, isWeekend, entry } = dayInfo;
 
   return (
     <div
       onClick={onClick}
-      className={`ios-touch w-full p-3.5 mb-2.5 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
+      className={`ios-touch w-full p-3 mb-2 rounded-2xl border transition cursor-pointer flex items-center justify-between ${
         entry
-          ? 'bg-white border-slate-200/90 shadow-sm hover:border-blue-400'
+          ? 'bg-white border-slate-200/90 shadow-xs hover:border-blue-400'
           : isWeekend
           ? 'bg-slate-100/60 border-slate-200/50 opacity-75'
           : 'bg-white/70 border-dashed border-slate-300 hover:bg-white hover:border-blue-300'
       }`}
     >
       {/* Date badge on the left */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 overflow-hidden">
         <div
           className={`w-12 h-12 rounded-2xl flex flex-col items-center justify-center font-bold text-center shrink-0 border ${
             entry
@@ -43,13 +44,13 @@ export const DayItem: React.FC<DayItemProps> = ({ dayInfo, onClick }) => {
         <div className="text-left overflow-hidden">
           {entry ? (
             <>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5 flex-wrap">
                 <span className="text-xs font-bold text-slate-900">
-                  {entry.startTime} – {entry.endTime} Uhr
+                  {entry.startTime} – {entry.endTime}
                 </span>
                 {entry.breakMinutes > 0 && (
                   <span className="text-[10px] font-medium text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded-md">
-                    Pause: {formatBreakMinutes(entry.breakMinutes)}
+                    {entry.breakMinutes}m P.
                   </span>
                 )}
               </div>
@@ -57,11 +58,35 @@ export const DayItem: React.FC<DayItemProps> = ({ dayInfo, onClick }) => {
                 <MapPin className="w-3 h-3 shrink-0 text-slate-400" />
                 <span className="truncate font-medium">{entry.siteDescription}</span>
               </div>
+
+              {/* Extra badges: Benzin, Auslagen, Belegfoto */}
+              {(entry.fuelExpenses || entry.expenses || entry.photoData) && (
+                <div className="flex items-center gap-1.5 flex-wrap mt-1">
+                  {entry.fuelExpenses && entry.fuelExpenses > 0 && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-orange-600 bg-orange-50 border border-orange-100 px-1.5 py-0.5 rounded-md">
+                      <Fuel className="w-2.5 h-2.5" />
+                      {formatCurrency(entry.fuelExpenses)}
+                    </span>
+                  )}
+                  {entry.expenses && entry.expenses > 0 && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md">
+                      <Banknote className="w-2.5 h-2.5" />
+                      {formatCurrency(entry.expenses)}
+                    </span>
+                  )}
+                  {entry.photoData && (
+                    <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-100 px-1.5 py-0.5 rounded-md">
+                      <Camera className="w-2.5 h-2.5" />
+                      {t('Beleg')}
+                    </span>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             <div>
               <div className="text-xs font-medium text-slate-700">
-                {isWeekend ? 'Wochenende' : 'Noch keine Arbeitszeit'}
+                {isWeekend ? t('Wochenende') : t('Kein Eintrag')}
               </div>
               <div className="text-[11px] text-slate-400 flex items-center gap-1 mt-0.5">
                 <span>Tippen zum Erfassen</span>

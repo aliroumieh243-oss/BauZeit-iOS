@@ -74,7 +74,8 @@ class TimeTrackingViewModel: ObservableObject {
         notes: String?,
         expenses: Double = 0.0,
         fuelExpenses: Double = 0.0,
-        expenseNote: String? = nil
+        expenseNote: String? = nil,
+        photoData: String? = nil
     ) {
         let decimalHours = TimeCalculations.calculateDecimalHours(
             startTime: startTime,
@@ -96,6 +97,7 @@ class TimeTrackingViewModel: ObservableObject {
             expenses: expenses,
             fuelExpenses: fuelExpenses,
             expenseNote: expenseNote,
+            photoData: photoData,
             updatedAt: Date()
         )
         

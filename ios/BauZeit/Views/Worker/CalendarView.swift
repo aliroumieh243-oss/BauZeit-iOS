@@ -300,8 +300,8 @@ struct CalendarView: View {
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)
                                     
-                                    // Spesen-Badges direkt am Tag
-                                    if e.fuelExpenses > 0 || e.expenses > 0 {
+                                    // Spesen-Badges & Foto-Badge direkt am Tag
+                                    if e.fuelExpenses > 0 || e.expenses > 0 || (e.photoData != nil && !e.photoData!.isEmpty) {
                                         HStack(spacing: 6) {
                                             if e.fuelExpenses > 0 {
                                                 Text("⛽ \(TimeCalculations.formatCurrency(e.fuelExpenses))")
@@ -312,6 +312,18 @@ struct CalendarView: View {
                                                 Text("💶 \(TimeCalculations.formatCurrency(e.expenses))")
                                                     .font(.system(size: 10, weight: .bold))
                                                     .foregroundColor(.green)
+                                            }
+                                            if let p = e.photoData, !p.isEmpty {
+                                                HStack(spacing: 3) {
+                                                    Image(systemName: "camera.fill")
+                                                    Text(lang.text("Beleg"))
+                                                }
+                                                .font(.system(size: 10, weight: .bold))
+                                                .foregroundColor(.blue)
+                                                .padding(.horizontal, 6)
+                                                .padding(.vertical, 1.5)
+                                                .background(Color.blue.opacity(0.12))
+                                                .cornerRadius(4)
                                             }
                                         }
                                         .padding(.top, 1)

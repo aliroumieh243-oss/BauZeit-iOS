@@ -25,6 +25,7 @@ export interface TimeEntry {
   expenses?: number;       // Geld ausgegeben (Material, Werkzeug)
   fuelExpenses?: number;   // Benzingeld / Sprit
   expenseNote?: string;    // Notiz zu den Ausgaben
+  photoData?: string;      // Base64 Foto von Beleg / Baustelle
   updatedAt: string;
 }
 

@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { useTimeTracking } from '../../context/TimeTrackingContext';
 import { FinancialSummaryCard } from './FinancialSummaryCard';
 import { formatCurrency, formatHours, GERMAN_MONTHS_FULL } from '../../utils/timeCalculations';
+import { t } from '../../utils/language';
 import {
   Users,
   UserPlus,
@@ -13,9 +14,14 @@ import {
   ChevronLeft,
   ChevronRight,
   HardHat,
-  Clock
+  Clock,
+  Sparkles,
+  Camera,
+  X
 } from 'lucide-react';
 import { AddWorkerModal } from './AddWorkerModal';
+import { MonthlyDocumentModal } from './MonthlyDocumentModal';
+import { TimeEntry } from '../../types';
 
 export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
   onNavigateToCalendar
@@ -33,6 +39,8 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
   } = useTimeTracking();
 
   const [isAddWorkerOpen, setIsAddWorkerOpen] = useState(false);
+  const [isMonthlyDocOpen, setIsMonthlyDocOpen] = useState(false);
+  const [viewedPhotoEntry, setViewedPhotoEntry] = useState<TimeEntry | null>(null);
 
   // Parse Year and Month
   const [yearStr, monthStr] = selectedMonth.split('-');
@@ -65,39 +73,6 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
     setSelectedMonth(`${newYear}-${monthPad}`);
   };
 
-  // CSV Export for Owner
-  const handleExportCSV = () => {
-    if (!activeWorker || entries.length === 0) {
-      alert('Keine Einträge für diesen Zeitraum vorhanden.');
-      return;
-    }
-
-    let csvContent = 'data:text/csv;charset=utf-8,';
-    csvContent += `Mitarbeiter;${activeWorker.displayName}\n`;
-    csvContent += `Monat;${monthName} ${year}\n`;
-    csvContent += `Stundensatz Mitarbeiter;${activeWorker.workerRate.toFixed(2)} EUR\n`;
-    csvContent += `Verrechnungssatz AR;${activeWorker.clientRate.toFixed(2)} EUR\n\n`;
-    csvContent += 'Datum;Beginn;Ende;Pause (Min);Stunden;Baustelle / Beschreibung\n';
-
-    entries.forEach(e => {
-      csvContent += `${e.date};${e.startTime};${e.endTime};${e.breakMinutes};${e.decimalHours.toFixed(2).replace('.', ',')};"${e.siteDescription}"\n`;
-    });
-
-    csvContent += `\nGesamtstunden;${calculations.totalHours.toFixed(2).replace('.', ',')}\n`;
-    csvContent += `Mitarbeiter AR Gesamt;${calculations.clientTotalAmount.toFixed(2).replace('.', ',')} EUR\n`;
-    csvContent += `Mitarbeiter Lohn;${calculations.workerTotalAmount.toFixed(2).replace('.', ',')} EUR\n`;
-    csvContent += `Anzahlung (Abzug);-${calculations.deposit.toFixed(2).replace('.', ',')} EUR\n`;
-    csvContent += `Endgueltiger Gesamtlohn;${calculations.netPayout.toFixed(2).replace('.', ',')} EUR\n`;
-
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Zeiterfassung_${activeWorker.displayName.replace(/\s+/g, '_')}_${selectedMonth}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   return (
     <div className="max-w-md mx-auto px-4 pb-safe-tab pt-2">
       {/* Top Banner with Month Navigation */}
@@ -112,7 +87,7 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
 
           <div className="text-center">
             <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">
-              Inhaber-Übersicht
+              {t('Inhaber-Übersicht')}
             </span>
             <h2 className="text-xl font-black text-slate-900 tracking-tight">
               {monthName} {year}
@@ -131,14 +106,14 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
         <div className="pt-2 border-t border-slate-100">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">
-              Mitarbeiter auswählen ({workers.length})
+              Mitarbeiter ({workers.length})
             </span>
             <button
               onClick={() => setIsAddWorkerOpen(true)}
               className="ios-touch text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1"
             >
               <UserPlus className="w-3.5 h-3.5" />
-              <span>+ Neuer Arbeiter</span>
+              <span>+ {t('Arbeiter')}</span>
             </button>
           </div>
 
@@ -177,6 +152,31 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
             onUpdateSettlement={updateSettlement}
           />
 
+          {/* KI-Monatsdokument & Tabellen-Export Highlight Button */}
+          <div className="mb-4">
+            <button
+              onClick={() => setIsMonthlyDocOpen(true)}
+              className="ios-touch w-full p-4 rounded-3xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white shadow-md hover:shadow-lg transition flex items-center justify-between"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+                  <Sparkles className="w-5 h-5 text-amber-300" />
+                </div>
+                <div className="text-left">
+                  <div className="text-xs font-black tracking-tight uppercase text-blue-100">
+                    {t('KI-Monatsdokument & Tabellen-Export')}
+                  </div>
+                  <div className="text-xs text-white font-bold">
+                    1-Klick Kopieren für Excel & Tabellen
+                  </div>
+                </div>
+              </div>
+              <span className="text-xs font-bold bg-white/20 px-2.5 py-1 rounded-xl">
+                Öffnen →
+              </span>
+            </button>
+          </div>
+
           {/* Quick Actions Bar */}
           <div className="grid grid-cols-2 gap-2 mb-4">
             <button
@@ -184,15 +184,15 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
               className="ios-touch p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center gap-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition"
             >
               <Clock className="w-4 h-4 text-blue-600" />
-              <span>Tageszeiten ansehen</span>
+              <span>{t('Tageszeiten ansehen')}</span>
             </button>
 
             <button
-              onClick={handleExportCSV}
+              onClick={() => setIsMonthlyDocOpen(true)}
               className="ios-touch p-3 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex items-center justify-center gap-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition"
             >
               <Download className="w-4 h-4 text-emerald-600" />
-              <span>Abrechnung Exportieren</span>
+              <span>{t('Abrechnung Exportieren')}</span>
             </button>
           </div>
 
@@ -200,7 +200,7 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
           <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200/90">
             <div className="flex items-center justify-between mb-3">
               <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-                Erfasste Einsätze ({entries.length})
+                {t('Erfasste Einsätze')} ({entries.length})
               </span>
               <button
                 onClick={onNavigateToCalendar}
@@ -216,14 +216,41 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
               </div>
             ) : (
               <div className="space-y-2">
-                {entries.slice(0, 5).map(e => (
+                {entries.slice(0, 6).map(e => (
                   <div
                     key={e.id}
-                    className="p-2.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
+                    className="p-3 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between text-xs"
                   >
                     <div>
-                      <div className="font-bold text-slate-900">{e.date}: {e.startTime} - {e.endTime}</div>
-                      <div className="text-[11px] text-slate-500 truncate max-w-[200px]">{e.siteDescription}</div>
+                      <div className="font-bold text-slate-900 flex items-center gap-2">
+                        <span>{e.date}: {e.startTime} - {e.endTime}</span>
+                        {e.photoData && (
+                          <button
+                            onClick={() => setViewedPhotoEntry(e)}
+                            className="inline-flex items-center gap-1 text-[10px] font-bold text-white bg-blue-600 px-1.5 py-0.5 rounded-md hover:bg-blue-700 transition"
+                          >
+                            <Camera className="w-3 h-3" />
+                            <span>{t('Beleg')}</span>
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[11px] text-slate-500 truncate max-w-[200px] mt-0.5">
+                        {e.siteDescription}
+                      </div>
+                      {(e.fuelExpenses || e.expenses) && (
+                        <div className="flex items-center gap-2 mt-1">
+                          {e.fuelExpenses && e.fuelExpenses > 0 && (
+                            <span className="text-[10px] font-semibold text-orange-600">
+                              ⛽ {formatCurrency(e.fuelExpenses)}
+                            </span>
+                          )}
+                          {e.expenses && e.expenses > 0 && (
+                            <span className="text-[10px] font-semibold text-emerald-600">
+                              💶 {formatCurrency(e.expenses)}
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg border border-emerald-100">
                       {formatHours(e.decimalHours)} h
@@ -251,6 +278,47 @@ export const OwnerDashboard: React.FC<{ onNavigateToCalendar: () => void }> = ({
         isOpen={isAddWorkerOpen}
         onClose={() => setIsAddWorkerOpen(false)}
       />
+
+      {/* KI-Monatsdokument & Tabellen-Export Modal */}
+      <MonthlyDocumentModal
+        isOpen={isMonthlyDocOpen}
+        onClose={() => setIsMonthlyDocOpen(false)}
+        workers={workers}
+        month={selectedMonth}
+        entries={entries}
+        settlements={settlement ? [settlement] : []}
+      />
+
+      {/* Full Size Photo Modal */}
+      {viewedPhotoEntry && viewedPhotoEntry.photoData && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col justify-between p-4"
+          onClick={() => setViewedPhotoEntry(null)}
+        >
+          <div className="flex items-center justify-between text-white">
+            <span className="text-sm font-bold">
+              {viewedPhotoEntry.date} • {viewedPhotoEntry.siteDescription}
+            </span>
+            <button
+              onClick={() => setViewedPhotoEntry(null)}
+              className="p-2 rounded-full bg-white/20 hover:bg-white/30 text-white"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+          <div className="flex-1 flex items-center justify-center py-4">
+            <img
+              src={viewedPhotoEntry.photoData}
+              alt="Beleg Vollbild"
+              className="max-h-[80vh] max-w-full object-contain rounded-lg shadow-2xl"
+              onClick={e => e.stopPropagation()}
+            />
+          </div>
+          <div className="text-center text-xs text-white/70">
+            Tippe zum Schließen
+          </div>
+        </div>
+      )}
     </div>
   );
 };

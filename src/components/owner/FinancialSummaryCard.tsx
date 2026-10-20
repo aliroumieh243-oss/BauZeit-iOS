@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { MonthlyCalculations, MonthlySettlement } from '../../types';
 import { formatCurrency, formatHours } from '../../utils/timeCalculations';
-import { Euro, TrendingUp, Receipt, Wallet, Edit3, Check, DollarSign } from 'lucide-react';
+import { t } from '../../utils/language';
+import { Euro, TrendingUp, Receipt, Wallet, Edit3, Check, DollarSign, Fuel, Banknote } from 'lucide-react';
 
 interface FinancialSummaryCardProps {
   calculations: MonthlyCalculations;
@@ -44,7 +45,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
       <div className="flex items-center justify-between pb-3 border-b border-slate-100">
         <div>
           <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-            Abrechnung & Lohnübersicht
+            {t('Abrechnung & Finanzen')}
           </span>
           <h3 className="text-base font-bold text-slate-900">{workerName}</h3>
         </div>
@@ -63,7 +64,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
           {isEditing ? (
             <>
               <Check className="w-3.5 h-3.5 text-blue-600" />
-              <span>{isSaving ? 'Speichern...' : 'Fertig'}</span>
+              <span>{isSaving ? 'Speichern...' : t('Fertig')}</span>
             </>
           ) : (
             <>
@@ -79,7 +80,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
         {/* Mitarbeiter AR (Kundenverrechnung / Abrechnung) */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200/70">
           <div className="flex items-center justify-between text-blue-700 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Mitarbeiter AR</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">{t('Kunden-Abrechnung AR')}</span>
             <span className="text-[10px] bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded-md font-semibold">
               {formatCurrency(calculations.clientRate)}/h
             </span>
@@ -95,7 +96,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
         {/* Mitarbeiter Lohn (Auszahlungsbasis) */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200/70">
           <div className="flex items-center justify-between text-emerald-700 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">Mitarbeiter</span>
+            <span className="text-[11px] font-bold uppercase tracking-wider">{t('Mitarbeiter-Lohn')}</span>
             <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-semibold">
               {formatCurrency(calculations.workerRate)}/h
             </span>
@@ -104,7 +105,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
             {formatCurrency(calculations.workerTotalAmount)}
           </div>
           <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
-            Lohnanspruch vor Abzug
+            {t('Grundlohn:')} vor Abzug
           </div>
         </div>
       </div>
@@ -112,13 +113,35 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
       {/* Detailed Breakdown */}
       <div className="space-y-2.5 text-xs text-slate-600 pt-1">
         <div className="flex items-center justify-between py-1 border-b border-slate-50">
-          <span className="text-slate-500 font-medium">Geleistete Monatsstunden:</span>
+          <span className="text-slate-500 font-medium">{t('Geleistete Monatsstunden:')}</span>
           <span className="font-bold text-slate-800">{formatHours(calculations.totalHours)} Stunden</span>
         </div>
 
+        {/* Benzingeld Erstattung */}
+        {calculations.totalFuelExpenses > 0 && (
+          <div className="flex items-center justify-between py-1 border-b border-slate-50 text-orange-600">
+            <span className="font-medium flex items-center gap-1">
+              <Fuel className="w-3.5 h-3.5" />
+              {t('Erstattung Benzingeld:')}
+            </span>
+            <span className="font-bold">+ {formatCurrency(calculations.totalFuelExpenses)}</span>
+          </div>
+        )}
+
+        {/* Auslagen Erstattung */}
+        {calculations.totalExpenses > 0 && (
+          <div className="flex items-center justify-between py-1 border-b border-slate-50 text-emerald-600">
+            <span className="font-medium flex items-center gap-1">
+              <Banknote className="w-3.5 h-3.5" />
+              {t('Erstattung Material / Auslagen:')}
+            </span>
+            <span className="font-bold">+ {formatCurrency(calculations.totalExpenses)}</span>
+          </div>
+        )}
+
         {/* Anzahlung field */}
         <div className="flex items-center justify-between py-1 border-b border-slate-50">
-          <span className="text-slate-500 font-medium">Geleistete Anzahlung (Abzug):</span>
+          <span className="text-slate-500 font-medium">{t('Geleistete Anzahlung (Abzug):')}</span>
           {isEditing ? (
             <div className="flex items-center gap-1">
               <input
@@ -139,7 +162,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
 
         {/* Jasin Betriebskosten */}
         <div className="flex items-center justify-between py-1 border-b border-slate-50">
-          <span className="text-slate-500 font-medium">Jasin Betriebskosten:</span>
+          <span className="text-slate-500 font-medium">{t('Jasin Betriebskosten:')}</span>
           {isEditing ? (
             <div className="flex items-center gap-1">
               <input
@@ -162,10 +185,10 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
         <div className="mt-3 pt-3 border-t-2 border-slate-200 flex items-center justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              Endgültiger Gesamtlohn
+              {t('Endgültiger Gesamtlohn')}
             </div>
             <div className="text-[11px] text-slate-500">
-              Nach Abzug der Anzahlung ({formatCurrency(calculations.workerTotalAmount)} - {formatCurrency(calculations.deposit)})
+              {t('Inkl. Spesen & nach Anzahlung')}
             </div>
           </div>
           <div className="text-right">

@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { HardHat, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle, UserPlus, LogIn, Key, User } from 'lucide-react';
+import { useLanguage, t } from '../../utils/language';
+import { HardHat, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle, UserPlus, LogIn, Key, User, Globe } from 'lucide-react';
 
 // The secret master code required to create an Admin / Owner account
 export const ADMIN_MASTER_CODES = ['CHEF2026', 'JASIN2026', 'BAUZEIT2026', 'ADMIN2026'];
 
 export const LoginView: React.FC = () => {
-  const { login, register, isFirebaseActive } = useAuth();
+  const { login, register } = useAuth();
+  const { lang, toggleLanguage } = useLanguage();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -61,15 +63,29 @@ export const LoginView: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-ios-bg flex flex-col justify-center px-4 py-8 max-w-md mx-auto">
+    <div className="min-h-screen bg-ios-bg flex flex-col justify-center px-4 py-8 max-w-md mx-auto relative">
+      {/* Language Switcher at Top */}
+      <div className="absolute top-4 right-4 z-10">
+        <button
+          type="button"
+          onClick={toggleLanguage}
+          className="ios-touch px-3 py-1.5 rounded-2xl bg-white border border-slate-200/80 shadow-xs text-xs font-bold text-slate-700 flex items-center gap-1.5 hover:bg-slate-50 transition"
+        >
+          <Globe className="w-3.5 h-3.5 text-blue-600" />
+          <span>{lang === 'de' ? 'العربية 🇸🇦' : 'Deutsch 🇩🇪'}</span>
+        </button>
+      </div>
+
       <div className="text-center mb-8">
         {/* iOS App Icon */}
         <div className="inline-flex items-center justify-center w-20 h-20 rounded-3xl bg-gradient-to-tr from-blue-600 to-blue-400 shadow-ios-lg mb-4 text-white">
           <HardHat className="w-10 h-10" />
         </div>
-        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">BauZeit</h1>
+        <h1 className="text-2xl font-extrabold tracking-tight text-slate-900">
+          {t('BauZeit')}
+        </h1>
         <p className="text-sm font-medium text-slate-500 mt-1">
-          Digitale Zeiterfassung für Handwerk & Baustelle
+          {t('Digitale Zeiterfassung für Handwerk & Baustelle')}
         </p>
       </div>
 
@@ -88,7 +104,7 @@ export const LoginView: React.FC = () => {
             }`}
           >
             <LogIn className="w-3.5 h-3.5" />
-            <span>Anmelden</span>
+            <span>{t('Anmelden')}</span>
           </button>
           <button
             type="button"
@@ -101,12 +117,12 @@ export const LoginView: React.FC = () => {
             }`}
           >
             <UserPlus className="w-3.5 h-3.5" />
-            <span>Konto erstellen</span>
+            <span>{t('Konto erstellen')}</span>
           </button>
         </div>
 
         <h2 className="text-base font-bold text-slate-900 mb-1">
-          {isRegisterMode ? 'Neues Mitarbeiterkonto anlegen' : 'Geschützter Login'}
+          {isRegisterMode ? t('Neues Mitarbeiterkonto anlegen') : t('Geschützter Login')}
         </h2>
         <p className="text-xs text-slate-500 mb-5">
           {isRegisterMode
@@ -125,7 +141,7 @@ export const LoginView: React.FC = () => {
           {isRegisterMode && (
             <div>
               <label className="block text-xs font-semibold uppercase text-slate-500 tracking-wider mb-1.5" htmlFor="name-input">
-                Vollständiger Name
+                {t('Vollständiger Name')}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -146,7 +162,7 @@ export const LoginView: React.FC = () => {
 
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-500 tracking-wider mb-1.5" htmlFor="email-input">
-              E-Mail Adresse
+              {t('E-Mail Adresse')}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -167,7 +183,7 @@ export const LoginView: React.FC = () => {
 
           <div>
             <label className="block text-xs font-semibold uppercase text-slate-500 tracking-wider mb-1.5" htmlFor="password-input">
-              Passwort
+              {t('Passwort')}
             </label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -199,9 +215,9 @@ export const LoginView: React.FC = () => {
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold uppercase text-slate-500 tracking-wider flex items-center gap-1" htmlFor="admin-code-input">
                   <Key className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Admin-Sicherheitscode (Optional)</span>
+                  <span>{t('Admin-Sicherheitscode (Optional)')}</span>
                 </label>
-                <span className="text-[10px] text-slate-400 font-medium">Nur für Inhaber</span>
+                <span className="text-[10px] text-slate-400 font-medium">{t('Nur für Inhaber')}</span>
               </div>
               <input
                 id="admin-code-input"
@@ -223,8 +239,8 @@ export const LoginView: React.FC = () => {
               {isSubmitting
                 ? 'Bitte warten...'
                 : isRegisterMode
-                ? 'Konto erstellen'
-                : 'Anmelden'}
+                ? t('Konto erstellen')
+                : t('Anmelden')}
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>

@@ -110,6 +110,13 @@ class LanguageManager: ObservableObject {
             "Zweck (z.B. Tanken Sprinter, Schrauben OBI)": "سبب الصرف (مثال: بنزين، براغي، مواد)",
             "Optionale Notizen": "ملاحظات إضافية",
             "Besonderheiten, Wetter, Zusatzarbeiten...": "أي تفاصيل أخرى...",
+            "Beleg / Foto (Optional)": "إرفاق صورة الفاتورة / الوصل",
+            "Foto / Beleg auswählen": "اختيار صورة أو إيصال",
+            "Foto entfernen": "حذف الصورة",
+            "Foto ansehen": "عرض الصورة",
+            "Beleg": "إيصال",
+            "Foto": "صورة",
+            "Beleg vorhanden": "يوجد إيصال",
             
             // Kalender & Dashboard
             "Monatsstunden": "ساعات هذا الشهر",

@@ -53,16 +53,17 @@ struct AIDocumentGenerator {
         
         // Block 2: Detaillierte Tage-Tabelle für die Buchhaltung
         lines.append("EINZELAUFSTELLUNG ALLER TAGE & EINSÄTZE")
-        lines.append("Mitarbeiter\tDatum\tBeginn\tEnde\tPause (Min)\tStunden\tBaustelle / Einsatzort\tBenzin (€)\tAuslagen (€)\tNotiz")
+        lines.append("Mitarbeiter\tDatum\tBeginn\tEnde\tPause (Min)\tStunden\tBaustelle / Einsatzort\tBenzin (€)\tAuslagen (€)\tBeleg\tNotiz")
         
         let sortedEntries = entries.filter { $0.date.hasPrefix(month) }.sorted { $0.date < $1.date }
         for e in sortedEntries {
             let workerName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
             let fuelStr = e.fuelExpenses > 0 ? String(format: "%.2f", e.fuelExpenses) : "0,00"
             let expStr = e.expenses > 0 ? String(format: "%.2f", e.expenses) : "0,00"
+            let receiptStr = (e.photoData != nil && !e.photoData!.isEmpty) ? "Ja (Foto)" : "-"
             let note = (e.expenseNote ?? e.notes ?? "").replacingOccurrences(of: "\t", with: " ")
             
-            lines.append("\(workerName)\t\(e.date)\t\(e.startTime)\t\(e.endTime)\t\(e.breakMinutes)\t\(TimeCalculations.formatHours(e.decimalHours))\t\(e.siteDescription)\t\(fuelStr)\t\(expStr)\t\(note)")
+            lines.append("\(workerName)\t\(e.date)\t\(e.startTime)\t\(e.endTime)\t\(e.breakMinutes)\t\(TimeCalculations.formatHours(e.decimalHours))\t\(e.siteDescription)\t\(fuelStr)\t\(expStr)\t\(receiptStr)\t\(note)")
         }
         
         return lines.joined(separator: "\n")

@@ -12,6 +12,7 @@ struct OwnerDashboardView: View {
     @State private var isAddWorkerPresented: Bool = false
     @State private var isEditingSettlement: Bool = false
     @State private var isMonthlyDocPresented: Bool = false
+    @State private var viewedPhotoEntry: TimeEntry? = nil
     
     @State private var depositText: String = "0"
     @State private var operatingText: String = "0"
@@ -360,9 +361,32 @@ struct OwnerDashboardView: View {
                                 ForEach(activeWorkerEntries) { entry in
                                     HStack {
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("\(entry.date): \(entry.startTime) – \(entry.endTime) Uhr")
-                                                .font(.footnote)
-                                                .fontWeight(.bold)
+                                            HStack(spacing: 6) {
+                                                Text("\(entry.date): \(entry.startTime) – \(entry.endTime) Uhr")
+                                                    .font(.footnote)
+                                                    .fontWeight(.bold)
+                                                
+                                                if let p = entry.photoData, !p.isEmpty {
+                                                    Button(action: {
+                                                        #if canImport(UIKit)
+                                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                                        #endif
+                                                        viewedPhotoEntry = entry
+                                                    }) {
+                                                        HStack(spacing: 3) {
+                                                            Image(systemName: "camera.fill")
+                                                            Text(lang.text("Beleg"))
+                                                        }
+                                                        .font(.system(size: 9, weight: .bold))
+                                                        .foregroundColor(.white)
+                                                        .padding(.horizontal, 6)
+                                                        .padding(.vertical, 2)
+                                                        .background(Color.blue)
+                                                        .cornerRadius(4)
+                                                    }
+                                                    .buttonStyle(.plain)
+                                                }
+                                            }
                                             Text(entry.siteDescription)
                                                 .font(.caption)
                                                 .foregroundColor(.secondary)
@@ -404,6 +428,12 @@ struct OwnerDashboardView: View {
         }
         .sheet(isPresented: $isMonthlyDocPresented) {
             MonthlyDocumentView()
+        }
+        .sheet(item: $viewedPhotoEntry) { entry in
+            FullScreenPhotoViewer(
+                base64String: entry.photoData ?? "",
+                title: "\(entry.date) • \(entry.siteDescription)"
+            )
         }
     }
     

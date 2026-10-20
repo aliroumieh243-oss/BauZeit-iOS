@@ -1,4 +1,5 @@
 import SwiftUI
+import PhotosUI
 #if canImport(UIKit)
 import UIKit
 #endif
@@ -24,6 +25,14 @@ struct TimeEntrySheet: View {
     @State private var fuelExpensesText: String = ""
     @State private var expensesText: String = ""
     @State private var expenseNote: String = ""
+    
+    // Beleg- und Foto-Erfassung
+    @State private var selectedPhotoItem: PhotosPickerItem? = nil
+    @State private var photoDataBase64: String? = nil
+    #if canImport(UIKit)
+    @State private var previewImage: UIImage? = nil
+    #endif
+    @State private var isShowingFullScreenPhoto: Bool = false
     
     let breakOptions = [0, 15, 30, 45, 60]
     let sitePresets = [
@@ -240,6 +249,87 @@ struct TimeEntrySheet: View {
                     Text(lang.text("Auslagen & Fahrtkosten"))
                 }
                 
+                // MARK: - Beleg- oder Baustellenfoto
+                Section(lang.text("Beleg / Foto (Optional)")) {
+                    #if canImport(UIKit)
+                    if let img = previewImage {
+                        VStack(spacing: 10) {
+                            Button(action: {
+                                isShowingFullScreenPhoto = true
+                            }) {
+                                Image(uiImage: img)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(maxHeight: 180)
+                                    .frame(maxWidth: .infinity)
+                                    .clipped()
+                                    .cornerRadius(12)
+                                    .overlay(
+                                        VStack {
+                                            Spacer()
+                                            HStack {
+                                                Image(systemName: "arrow.up.left.and.arrow.down.right")
+                                                Text(lang.text("Foto ansehen"))
+                                            }
+                                            .font(.caption2)
+                                            .fontWeight(.bold)
+                                            .padding(.horizontal, 10)
+                                            .padding(.vertical, 5)
+                                            .background(.ultraThinMaterial)
+                                            .cornerRadius(8)
+                                            .padding(8)
+                                        }
+                                    )
+                            }
+                            .buttonStyle(.plain)
+                            
+                            HStack {
+                                Label(lang.text("Beleg vorhanden"), systemImage: "checkmark.circle.fill")
+                                    .font(.caption)
+                                    .foregroundColor(.green)
+                                
+                                Spacer()
+                                
+                                Button(role: .destructive, action: {
+                                    previewImage = nil
+                                    photoDataBase64 = nil
+                                    selectedPhotoItem = nil
+                                }) {
+                                    Label(lang.text("Foto entfernen"), systemImage: "trash")
+                                        .font(.caption)
+                                        .foregroundColor(.red)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    } else {
+                        PhotosPicker(selection: $selectedPhotoItem, matching: .images) {
+                            HStack(spacing: 12) {
+                                Circle()
+                                    .fill(Color.blue.opacity(0.12))
+                                    .frame(width: 40, height: 40)
+                                    .overlay(Image(systemName: "camera.fill").foregroundColor(.blue).font(.system(size: 16)))
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(lang.text("Foto / Beleg auswählen"))
+                                        .font(.subheadline)
+                                        .fontWeight(.semibold)
+                                        .foregroundColor(.primary)
+                                    Text(lang.isArabic ? "إرفاق صورة الوصل أو موقع البناء" : "Quittung, Tankbeleg oder Baustelle")
+                                        .font(.caption2)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                                Image(systemName: "plus.circle.fill")
+                                    .foregroundColor(.blue)
+                                    .font(.system(size: 20))
+                            }
+                            .padding(.vertical, 4)
+                        }
+                    }
+                    #endif
+                }
+                
                 // MARK: - Allgemeine Notizen
                 Section(lang.text("Optionale Notizen")) {
                     TextField(lang.text("Besonderheiten, Wetter, Zusatzarbeiten..."), text: $notes)
@@ -288,7 +378,8 @@ struct TimeEntrySheet: View {
                             notes: notes.isEmpty ? nil : notes,
                             expenses: parsedExpenses,
                             fuelExpenses: parsedFuelExpenses,
-                            expenseNote: expenseNote.isEmpty ? nil : expenseNote
+                            expenseNote: expenseNote.isEmpty ? nil : expenseNote,
+                            photoData: photoDataBase64
                         )
                         dismiss()
                     }
@@ -316,6 +407,38 @@ struct TimeEntrySheet: View {
                         expensesText = String(format: "%.2f", e.expenses)
                     }
                     expenseNote = e.expenseNote ?? ""
+                    
+                    if let p = e.photoData, !p.isEmpty {
+                        photoDataBase64 = p
+                        #if canImport(UIKit)
+                        if let data = Data(base64Encoded: p) {
+                            previewImage = UIImage(data: data)
+                        }
+                        #endif
+                    }
+                }
+            }
+            .onChange(of: selectedPhotoItem) { newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self) {
+                        #if canImport(UIKit)
+                        if let img = UIImage(data: data) {
+                            let resized = img.resizedTo(maxDimension: 1024)
+                            if let jpeg = resized.jpegData(compressionQuality: 0.65) {
+                                let b64 = jpeg.base64EncodedString()
+                                await MainActor.run {
+                                    self.previewImage = resized
+                                    self.photoDataBase64 = b64
+                                }
+                            }
+                        }
+                        #endif
+                    }
+                }
+            }
+            .sheet(isPresented: $isShowingFullScreenPhoto) {
+                if let b64 = photoDataBase64 {
+                    FullScreenPhotoViewer(base64String: b64, title: formattedDate)
                 }
             }
         }

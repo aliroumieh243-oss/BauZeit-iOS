@@ -1,21 +1,62 @@
+import { useState, useEffect } from 'react';
+
 export type AppLanguage = 'de' | 'ar';
 
 const STORAGE_KEY = 'bauzeit_app_language';
 
 export function getSavedLanguage(): AppLanguage {
-  const saved = localStorage.getItem(STORAGE_KEY);
+  const saved = typeof window !== 'undefined' ? localStorage.getItem(STORAGE_KEY) : 'de';
   return (saved === 'ar' || saved === 'de') ? saved : 'de';
 }
 
 export function saveLanguage(lang: AppLanguage): void {
-  localStorage.setItem(STORAGE_KEY, lang);
-  if (lang === 'ar') {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, lang);
+    if (lang === 'ar') {
+      document.documentElement.dir = 'rtl';
+      document.documentElement.lang = 'ar';
+    } else {
+      document.documentElement.dir = 'ltr';
+      document.documentElement.lang = 'de';
+    }
+  }
+}
+
+// Initial setup on module execution
+if (typeof window !== 'undefined') {
+  const initial = getSavedLanguage();
+  if (initial === 'ar') {
     document.documentElement.dir = 'rtl';
     document.documentElement.lang = 'ar';
   } else {
     document.documentElement.dir = 'ltr';
     document.documentElement.lang = 'de';
   }
+}
+
+export function useLanguage() {
+  const [lang, setLangState] = useState<AppLanguage>(getSavedLanguage());
+
+  const toggleLanguage = () => {
+    const nextLang: AppLanguage = lang === 'de' ? 'ar' : 'de';
+    saveLanguage(nextLang);
+    setLangState(nextLang);
+    window.dispatchEvent(new Event('languagechange'));
+  };
+
+  useEffect(() => {
+    const handleStorage = () => {
+      setLangState(getSavedLanguage());
+    };
+    window.addEventListener('languagechange', handleStorage);
+    window.addEventListener('storage', handleStorage);
+    return () => {
+      window.removeEventListener('languagechange', handleStorage);
+      window.removeEventListener('storage', handleStorage);
+    };
+  }, []);
+
+  return { lang, toggleLanguage, isArabic: lang === 'ar' };
 }
 
 const DICTIONARY: Record<string, string> = {
@@ -69,6 +110,14 @@ const DICTIONARY: Record<string, string> = {
   "Geld ausgegeben": "مصاريف ومشتريات العمل",
   "Zweck": "سبب الصرف",
   "Optionale Notizen": "ملاحظات إضافية",
+  "Beleg / Foto (Optional)": "إرفاق صورة الفاتورة / الوصل",
+  "Foto / Beleg auswählen": "اختيار صورة أو إيصال",
+  "Foto entfernen": "حذف الصورة",
+  "Foto ansehen": "عرض الصورة",
+  "Beleg": "إيصال",
+  "Beleg vorhanden": "يوجد إيصال",
+  "Quittung, Tankbeleg oder Baustelle": "إيصال أو وقود أو موقع العمل",
+  "Zweck (z.B. Tanken Sprinter, Schrauben OBI)": "سبب الصرف (مثال: بنزين، براغي، مواد)",
   
   // Kalender & Dashboard
   "Monatsstunden": "ساعات هذا الشهر",
@@ -81,6 +130,10 @@ const DICTIONARY: Record<string, string> = {
   "Benzin:": "وقود:",
   "Auslagen:": "مصاريف:",
   "Spesen": "مصاريف",
+  "Tageszeiten ansehen": "عرض ساعات العمل اليومية",
+  "Abrechnung Exportieren": "تصدير الحسابات",
+  "Schließen": "إغلاق",
+  "Sprache": "اللغة",
   
   // Abrechnung
   "Deine Lohnübersicht": "ملخص الراتب المستحق",
@@ -112,8 +165,12 @@ const DICTIONARY: Record<string, string> = {
   
   // KI & Dokument Export
   "KI-Monatsdokument & Tabellen-Export": "تقرير وتصدير الجدول الذكي",
+  "KI-Monatsdokument bereit": "تقرير الجدول الذكي جاهز",
+  "Perfekt vorbereitet zur Übertragung in deine Tabellen": "جاهز للنقل المباشر إلى جداول إكسل أو غوغل شيتس",
   "In Tabelle einfügen (Kopieren)": "نسخ للجدول (إكسل)",
+  "Kopiert! Bereit zum Einfügen": "تم النسخ! جاهز للصق في إكسل",
   "Als Excel / CSV teilen": "تحميل كملف إكسل",
+  "Als CSV herunterladen": "تحميل كملف CSV",
   "In Zwischenablage kopiert!": "تم نسخ البيانات إلى الحافظة بنجاح!"
 };
 

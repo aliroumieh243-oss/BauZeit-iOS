@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import { useTimeTracking } from '../../context/TimeTrackingContext';
 import { useAuth } from '../../context/AuthContext';
-import { getDaysForMonth, formatHours, GERMAN_MONTHS_FULL } from '../../utils/timeCalculations';
+import { getDaysForMonth, formatHours, formatCurrency, GERMAN_MONTHS_FULL } from '../../utils/timeCalculations';
 import { DayItem } from './DayItem';
 import { TimeEntryModal } from './TimeEntryModal';
 import { DayCalendarInfo } from '../../types';
+import { t } from '../../utils/language';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, HardHat } from 'lucide-react';
 
 export const CalendarView: React.FC = () => {
@@ -69,7 +70,7 @@ export const CalendarView: React.FC = () => {
           <div className="text-center">
             <div className="flex items-center justify-center gap-1.5 text-xs font-bold text-blue-600 uppercase tracking-wider">
               <CalendarIcon className="w-3.5 h-3.5" />
-              <span>Arbeitszeiterfassung</span>
+              <span>{t('Zeiterfassung')}</span>
             </div>
             <h2 className="text-xl font-black text-slate-900 tracking-tight">
               {monthName} {year}
@@ -100,22 +101,38 @@ export const CalendarView: React.FC = () => {
         <div className="mt-3.5 grid grid-cols-2 gap-2.5">
           <div className="bg-blue-50/80 border border-blue-100 rounded-2xl p-3 text-center">
             <span className="text-[10px] font-bold text-blue-700 uppercase tracking-wider block">
-              Monatsstunden
+              {t('Monatsstunden')}
             </span>
             <span className="text-xl font-black text-blue-900">
-              {formatHours(calculations.totalHours)} <span className="text-xs font-semibold">h</span>
+              {formatHours(calculations.totalHours)} <span className="text-xs font-semibold">{t('Std.')}</span>
             </span>
           </div>
 
           <div className="bg-emerald-50/80 border border-emerald-100 rounded-2xl p-3 text-center">
             <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
-              Erfasste Tage
+              {t('Arbeitstage')}
             </span>
             <span className="text-xl font-black text-emerald-900">
-              {entries.length} <span className="text-xs font-semibold">Tage</span>
+              {entries.length} <span className="text-xs font-semibold">{t('Tage')}</span>
             </span>
           </div>
         </div>
+
+        {/* Optional Spesen Pill if fuel/expenses present */}
+        {(calculations.totalFuelExpenses > 0 || calculations.totalExpenses > 0) && (
+          <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between text-xs px-1">
+            {calculations.totalFuelExpenses > 0 && (
+              <span className="text-orange-600 font-bold">
+                ⛽ {t('Benzin:')} {formatCurrency(calculations.totalFuelExpenses)}
+              </span>
+            )}
+            {calculations.totalExpenses > 0 && (
+              <span className="text-emerald-600 font-bold">
+                💶 {t('Auslagen:')} {formatCurrency(calculations.totalExpenses)}
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Days List (1 to 30/31) */}

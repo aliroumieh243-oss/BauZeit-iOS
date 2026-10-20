@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { ShieldCheck, HardHat, LogOut } from 'lucide-react';
+import { useLanguage } from '../../utils/language';
+import { ShieldCheck, HardHat, LogOut, Globe } from 'lucide-react';
 
 interface HeaderProps {
   title: string;
@@ -9,6 +10,7 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
   const { isOwner, logout } = useAuth();
+  const { lang, toggleLanguage } = useLanguage();
 
   return (
     <header className="sticky top-0 z-30 ios-glass pt-safe px-4 pb-3 transition-all">
@@ -32,6 +34,16 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Language Switcher Button */}
+          <button
+            onClick={toggleLanguage}
+            title="Sprache wechseln / تغيير اللغة"
+            className="ios-touch px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition"
+          >
+            <Globe className="w-3.5 h-3.5 text-blue-600" />
+            <span>{lang === 'de' ? 'AR 🇸🇦' : 'DE 🇩🇪'}</span>
+          </button>
+
           {/* Logout */}
           <button
             onClick={logout}

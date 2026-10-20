@@ -28,6 +28,10 @@ interface TimeTrackingContextType {
       breakMinutes: number;
       siteDescription: string;
       notes?: string;
+      expenses?: number;
+      fuelExpenses?: number;
+      expenseNote?: string;
+      photoData?: string;
     }
   ) => Promise<TimeEntry>;
   deleteEntry: (entryId: string) => Promise<void>;
@@ -117,6 +121,10 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
     breakMinutes: number;
     siteDescription: string;
     notes?: string;
+    expenses?: number;
+    fuelExpenses?: number;
+    expenseNote?: string;
+    photoData?: string;
   }): Promise<TimeEntry> => {
     const workerId = !isOwner ? (currentUser?.id || '') : selectedWorkerId;
     const decimalHours = calculateDecimalHours(data.startTime, data.endTime, data.breakMinutes);
@@ -131,6 +139,10 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
       siteDescription: data.siteDescription.trim() || 'Allgemeine Arbeiten',
       decimalHours,
       notes: data.notes,
+      expenses: data.expenses || 0,
+      fuelExpenses: data.fuelExpenses || 0,
+      expenseNote: data.expenseNote,
+      photoData: data.photoData,
       updatedAt: new Date().toISOString()
     };
 
