@@ -237,8 +237,6 @@ struct TimeEntrySheet: View {
                     }
                 } header: {
                     Text("Auslagen & Fahrtkosten")
-                } footer: {
-                    Text("Ausgegebenes Geld und Benzingeld werden dem Arbeiter am Monatsende automatisch zur Erstattung gutgeschrieben.")
                 }
                 
                 // MARK: - Allgemeine Notizen
