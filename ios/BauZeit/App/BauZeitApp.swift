@@ -27,12 +27,15 @@ struct BauZeitApp: App {
 
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var timeVM = TimeTrackingViewModel()
+    @StateObject private var lang = LanguageManager()
     
     var body: some Scene {
         WindowGroup {
             MainContentView()
                 .environmentObject(authVM)
                 .environmentObject(timeVM)
+                .environmentObject(lang)
+                .environment(\.layoutDirection, lang.isArabic ? .rightToLeft : .leftToRight)
         }
     }
 }
@@ -54,39 +57,41 @@ struct MainContentView: View {
 }
 
 struct WorkerTabView: View {
+    @EnvironmentObject var lang: LanguageManager
+    
     var body: some View {
         TabView {
             NavigationView {
                 CalendarView(targetUserId: nil)
-                    .navigationTitle("Zeiterfassung")
+                    .navigationTitle(lang.text("Zeiterfassung"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Zeiten", systemImage: "calendar.badge.clock")
+                Label(lang.text("Zeiten"), systemImage: "calendar.badge.clock")
             }
             
             NavigationView {
                 WorkerSummaryView()
-                    .navigationTitle("Abrechnung")
+                    .navigationTitle(lang.text("Abrechnung"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Abrechnung", systemImage: "chart.bar.fill")
+                Label(lang.text("Abrechnung"), systemImage: "chart.bar.fill")
             }
             
             NavigationView {
                 ProfileView()
-                    .navigationTitle("Mein Profil")
+                    .navigationTitle(lang.text("Mein Profil"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Profil", systemImage: "person.fill")
+                Label(lang.text("Profil"), systemImage: "person.fill")
             }
         }
     }
@@ -95,40 +100,41 @@ struct WorkerTabView: View {
 struct OwnerTabView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var timeVM: TimeTrackingViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     var body: some View {
         TabView {
             NavigationView {
                 OwnerDashboardView()
-                    .navigationTitle("Chef-Übersicht")
+                    .navigationTitle(lang.text("Chef-Übersicht"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Übersicht", systemImage: "chart.pie.fill")
+                Label(lang.text("Übersicht"), systemImage: "chart.pie.fill")
             }
             
             NavigationView {
                 CalendarView(targetUserId: authVM.users.first(where: { $0.role == .member })?.id)
-                    .navigationTitle("Zeiterfassung")
+                    .navigationTitle(lang.text("Zeiterfassung"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Zeiten", systemImage: "calendar.badge.clock")
+                Label(lang.text("Zeiten"), systemImage: "calendar.badge.clock")
             }
             
             NavigationView {
                 ProfileView()
-                    .navigationTitle("Inhaber-Konto")
+                    .navigationTitle(lang.text("Inhaber-Konto"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Profil", systemImage: "person.crop.circle.fill")
+                Label(lang.text("Profil"), systemImage: "person.crop.circle.fill")
             }
         }
     }

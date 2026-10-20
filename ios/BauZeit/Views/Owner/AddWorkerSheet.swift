@@ -3,6 +3,7 @@ import SwiftUI
 struct AddWorkerSheet: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     @State private var name: String = ""
     @State private var email: String = ""
@@ -22,22 +23,22 @@ struct AddWorkerSheet: View {
                     }
                 }
                 
-                Section("Mitarbeiter-Daten") {
-                    TextField("Vollständiger Name", text: $name)
-                    TextField("E-Mail Adresse (für Login)", text: $email)
+                Section(lang.isArabic ? "بيانات العامل الجديد" : "Mitarbeiter-Daten") {
+                    TextField(lang.text("Vollständiger Name"), text: $name)
+                    TextField(lang.text("E-Mail Adresse"), text: $email)
                         #if os(iOS)
                         .keyboardType(.emailAddress)
                         .autocapitalization(.none)
                         #endif
-                    TextField("Telefonnummer (Optional)", text: $phone)
+                    TextField(lang.isArabic ? "رقم الهاتف (اختياري)" : "Telefonnummer (Optional)", text: $phone)
                         #if os(iOS)
                         .keyboardType(.phonePad)
                         #endif
                 }
                 
-                Section("Stundensätze") {
+                Section(lang.isArabic ? "الأجور وسعر الساعة" : "Stundensätze") {
                     HStack {
-                        Text("Stundenlohn (€/h):")
+                        Text(lang.isArabic ? "أجر العامل (€/h):" : "Stundenlohn (€/h):")
                         Spacer()
                         TextField("12.00", text: $workerRateText)
                             .multilineTextAlignment(.trailing)
@@ -48,7 +49,7 @@ struct AddWorkerSheet: View {
                     }
                     
                     HStack {
-                        Text("Mitarbeiter AR (€/h):")
+                        Text(lang.isArabic ? "سعر العميل AR (€/h):" : "Kundenverrechnung AR (€/h):")
                         Spacer()
                         TextField("35.00", text: $clientRateText)
                             .multilineTextAlignment(.trailing)
@@ -59,16 +60,16 @@ struct AddWorkerSheet: View {
                     }
                 }
             }
-            .navigationTitle("Neuen Mitarbeiter anlegen")
+            .navigationTitle(lang.isArabic ? "إضافة عامل" : "Neuer Mitarbeiter")
             #if os(iOS)
             .navigationBarTitleDisplayMode(.inline)
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button(lang.text("Abbrechen")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") {
+                    Button(lang.text("Speichern")) {
                         saveWorker()
                     }
                     .fontWeight(.bold)
@@ -78,25 +79,27 @@ struct AddWorkerSheet: View {
     }
     
     private func saveWorker() {
-        guard !name.isEmpty, !email.isEmpty else {
-            errorMessage = "Bitte Name und E-Mail eingeben."
+        guard !name.trimmingCharacters(in: .whitespaces).isEmpty,
+              !email.trimmingCharacters(in: .whitespaces).isEmpty else {
+            errorMessage = lang.isArabic ? "يرجى إدخال الاسم والبريد الإلكتروني." : "Bitte Name und E-Mail eingeben."
             return
         }
-        let wRate = Double(workerRateText.replacingOccurrences(of: ",", with: ".")) ?? 12.0
-        let cRate = Double(clientRateText.replacingOccurrences(of: ",", with: ".")) ?? 35.0
         
-        let success = authVM.addNewWorker(
-            name: name,
+        let workerRate = Double(workerRateText.replacingOccurrences(of: ",", with: ".")) ?? 12.0
+        let clientRate = Double(clientRateText.replacingOccurrences(of: ",", with: ".")) ?? 35.0
+        
+        let success = authVM.addWorker(
+            displayName: name,
             email: email,
-            workerRate: wRate,
-            clientRate: cRate,
-            phone: phone.isEmpty ? nil : phone
+            workerRate: workerRate,
+            clientRate: clientRate,
+            phoneNumber: phone.isEmpty ? nil : phone
         )
         
         if success {
             dismiss()
         } else {
-            errorMessage = "Ein Mitarbeiter mit dieser E-Mail existiert bereits."
+            errorMessage = authVM.errorMessage ?? (lang.isArabic ? "تعذر حفظ العامل." : "Fehler beim Anlegen.")
         }
     }
 }

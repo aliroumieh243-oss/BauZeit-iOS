@@ -10,13 +10,16 @@
 		0B55DAA476EDC282E97D14BF /* TimeCalculations.swift in Sources */ = {isa = PBXBuildFile; fileRef = 378162FF7D8938A26CDFC854 /* TimeCalculations.swift */; };
 		27C33FA60F55B31BED9FD8BA /* AuthViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F2109A1952433060CD90D6C /* AuthViewModel.swift */; };
 		3D986FD468E4F5A2CC3FE5D8 /* BauZeitApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C032CE916DF61E6F14A1B0E9 /* BauZeitApp.swift */; };
+		41F9990DC96AB0CACD0E1659 /* MonthlyDocumentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F3AD72F4F5EFB3C3E1195D1 /* MonthlyDocumentView.swift */; };
 		5CDD2DCA991CF1DF23972541 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 837FF572DD1C2FA4DD31419E /* LoginView.swift */; };
 		63D71C2483A2B9413CE257A9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C4D60DDEFC8DFB248D10BE5 /* CalendarView.swift */; };
+		82D900E923463552852B45D6 /* AIDocumentGenerator.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFBBA7FDEB92D92E08BF221C /* AIDocumentGenerator.swift */; };
 		A14509707CCC4AF1D9B0F791 /* TimeEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2CEB3D4A4220B6C41300A9C2 /* TimeEntrySheet.swift */; };
 		A68F8FAD510DDDA165928B80 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 16F7526015D9DB8F627CE1BD /* Assets.xcassets */; };
 		AEF83F4CF86C3B7CBEE97086 /* WorkerSummaryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD3DE9C03E61A89ECEE218A /* WorkerSummaryView.swift */; };
 		AFF0D53C77540511DFB4A888 /* OwnerDashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6EAF2130136279DDF50AF6E1 /* OwnerDashboardView.swift */; };
 		BB623867BF92F280714266D6 /* TimeEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C5055AD80663FA2B9BD7F2 /* TimeEntry.swift */; };
+		BD518B2AC179F654D8142F1B /* LanguageManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 22A4D99FE360DD882E9950E2 /* LanguageManager.swift */; };
 		D22F8598D5D90ADE4ACF5F61 /* AddWorkerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = B60CB2BF4E7D1BF2470D1E54 /* AddWorkerSheet.swift */; };
 		D5425730B21D8382F7C03300 /* TimeTrackingViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62024112609B8DBDF077916F /* TimeTrackingViewModel.swift */; };
 		D6E99645EFC62FF80C04040F /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11EE6C34B49027A61D3FC57F /* ProfileView.swift */; };
@@ -28,9 +31,11 @@
 
 /* Begin PBXFileReference section */
 		0E7271431DA37B4E73565952 /* UserProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserProfile.swift; sourceTree = "<group>"; };
+		0F3AD72F4F5EFB3C3E1195D1 /* MonthlyDocumentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MonthlyDocumentView.swift; sourceTree = "<group>"; };
 		0FAE8BEF18F7B5AA80ED8E8A /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		11EE6C34B49027A61D3FC57F /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		16F7526015D9DB8F627CE1BD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		22A4D99FE360DD882E9950E2 /* LanguageManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LanguageManager.swift; sourceTree = "<group>"; };
 		2CEB3D4A4220B6C41300A9C2 /* TimeEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntrySheet.swift; sourceTree = "<group>"; };
 		378162FF7D8938A26CDFC854 /* TimeCalculations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeCalculations.swift; sourceTree = "<group>"; };
 		3C4D60DDEFC8DFB248D10BE5 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
@@ -40,6 +45,7 @@
 		8F2109A1952433060CD90D6C /* AuthViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthViewModel.swift; sourceTree = "<group>"; };
 		96C5055AD80663FA2B9BD7F2 /* TimeEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeEntry.swift; sourceTree = "<group>"; };
 		9CD3DE9C03E61A89ECEE218A /* WorkerSummaryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkerSummaryView.swift; sourceTree = "<group>"; };
+		AFBBA7FDEB92D92E08BF221C /* AIDocumentGenerator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIDocumentGenerator.swift; sourceTree = "<group>"; };
 		B60CB2BF4E7D1BF2470D1E54 /* AddWorkerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddWorkerSheet.swift; sourceTree = "<group>"; };
 		C032CE916DF61E6F14A1B0E9 /* BauZeitApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BauZeitApp.swift; sourceTree = "<group>"; };
 		E09E2EB035F876C53E3C2790 /* BauZeit.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = BauZeit.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -100,6 +106,7 @@
 			isa = PBXGroup;
 			children = (
 				B60CB2BF4E7D1BF2470D1E54 /* AddWorkerSheet.swift */,
+				0F3AD72F4F5EFB3C3E1195D1 /* MonthlyDocumentView.swift */,
 				6EAF2130136279DDF50AF6E1 /* OwnerDashboardView.swift */,
 			);
 			path = Owner;
@@ -125,6 +132,8 @@
 		BD147941C246C088FDB68FAB /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				AFBBA7FDEB92D92E08BF221C /* AIDocumentGenerator.swift */,
+				22A4D99FE360DD882E9950E2 /* LanguageManager.swift */,
 				378162FF7D8938A26CDFC854 /* TimeCalculations.swift */,
 				F0FF282077C96E7696772729 /* UIHelpers.swift */,
 			);
@@ -246,11 +255,14 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82D900E923463552852B45D6 /* AIDocumentGenerator.swift in Sources */,
 				D22F8598D5D90ADE4ACF5F61 /* AddWorkerSheet.swift in Sources */,
 				27C33FA60F55B31BED9FD8BA /* AuthViewModel.swift in Sources */,
 				3D986FD468E4F5A2CC3FE5D8 /* BauZeitApp.swift in Sources */,
 				63D71C2483A2B9413CE257A9 /* CalendarView.swift in Sources */,
+				BD518B2AC179F654D8142F1B /* LanguageManager.swift in Sources */,
 				5CDD2DCA991CF1DF23972541 /* LoginView.swift in Sources */,
+				41F9990DC96AB0CACD0E1659 /* MonthlyDocumentView.swift in Sources */,
 				AFF0D53C77540511DFB4A888 /* OwnerDashboardView.swift in Sources */,
 				D6E99645EFC62FF80C04040F /* ProfileView.swift in Sources */,
 				0B55DAA476EDC282E97D14BF /* TimeCalculations.swift in Sources */,

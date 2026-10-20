@@ -5,11 +5,38 @@ import UIKit
 
 struct ProfileView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
-                // User Card
+                
+                // MARK: - Sprachauswahl (Deutsch / العربية)
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "globe")
+                            .foregroundColor(.blue)
+                        Text(lang.isArabic ? "لغة التطبيق" : "App-Sprache")
+                            .font(.headline)
+                            .fontWeight(.bold)
+                    }
+                    
+                    Picker("Sprache", selection: $lang.currentLanguage) {
+                        ForEach(AppLanguage.allCases) { language in
+                            Text(language.displayName).tag(language)
+                        }
+                    }
+                    #if os(iOS)
+                    .pickerStyle(.segmented)
+                    #endif
+                }
+                .padding(16)
+                .background(Color.cardBackground)
+                .cornerRadius(18)
+                .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
+                .padding(.horizontal, 16)
+                
+                // MARK: - User Card
                 VStack(spacing: 12) {
                     Circle()
                         .fill(Color.blue)
@@ -21,7 +48,7 @@ struct ProfileView: View {
                         )
                         .padding(.top, 10)
                     
-                    Text(authVM.currentUser?.displayName ?? "Nutzer")
+                    Text(authVM.currentUser?.displayName ?? (lang.isArabic ? "مستخدم" : "Nutzer"))
                         .font(.title3)
                         .fontWeight(.bold)
                     
@@ -29,7 +56,9 @@ struct ProfileView: View {
                         .font(.footnote)
                         .foregroundColor(.secondary)
                     
-                    Text(authVM.isOwner ? "Owner (Inhaber / Administrator)" : "Mitarbeiter")
+                    Text(authVM.isOwner
+                         ? (lang.isArabic ? "المسؤول (صاحب العمل)" : "Owner (Inhaber / Administrator)")
+                         : (lang.isArabic ? "عامل" : "Mitarbeiter"))
                         .font(.caption)
                         .fontWeight(.bold)
                         .padding(.horizontal, 12)
@@ -43,7 +72,7 @@ struct ProfileView: View {
                             .padding(.vertical, 4)
                         
                         HStack {
-                            Text("Dein Stundenlohn:")
+                            Text(lang.isArabic ? "أجر الساعة:" : "Dein Stundenlohn:")
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -60,18 +89,20 @@ struct ProfileView: View {
                 .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
                 .padding(.horizontal, 16)
                 
-                // Privacy Guarantee Banner
+                // MARK: - Privacy Guarantee Banner
                 HStack(alignment: .top, spacing: 12) {
                     Image(systemName: "lock.shield.fill")
                         .font(.title2)
                         .foregroundColor(.green)
                     
                     VStack(alignment: .leading, spacing: 3) {
-                        Text("Strikte Datentrennung aktiv")
+                        Text(lang.isArabic ? "خصوصية تامة وحماية للبيانات" : "Strikte Datentrennung aktiv")
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundColor(.green)
-                        Text("Du hast ausschließlich Zugriff auf dein eigenes Profil und deine eigenen Arbeitszeiten. Andere Arbeiter können deine Daten nicht einsehen.")
+                        Text(lang.isArabic
+                             ? "لك حق الوصول فقط إلى ساعات عملك وحسابك الشخصي. لا يمكن لأي عامل آخر الاطلاع على بياناتك."
+                             : "Du hast ausschließlich Zugriff auf dein eigenes Profil und deine eigenen Arbeitszeiten. Andere Arbeiter können deine Daten nicht einsehen.")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                             .lineSpacing(2)
@@ -82,14 +113,14 @@ struct ProfileView: View {
                 .cornerRadius(18)
                 .padding(.horizontal, 16)
                 
-                // Logout Button
+                // MARK: - Logout Button
                 Button(role: .destructive, action: {
                     authVM.logout()
                 }) {
                     HStack {
                         Spacer()
                         Image(systemName: "rectangle.portrait.and.arrow.right")
-                        Text("Abmelden")
+                        Text(lang.isArabic ? "تسجيل الخروج" : "Abmelden")
                             .fontWeight(.bold)
                         Spacer()
                     }

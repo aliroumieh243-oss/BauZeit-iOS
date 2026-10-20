@@ -6,6 +6,9 @@ import UIKit
 struct WorkerSummaryView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var timeVM: TimeTrackingViewModel
+    @EnvironmentObject var lang: LanguageManager
+    
+    @State private var isMonthlyDocPresented: Bool = false
     
     var currentUser: UserProfile? {
         authVM.currentUser
@@ -40,12 +43,12 @@ struct WorkerSummaryView: View {
             VStack(spacing: 16) {
                 // Header
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Monatsabrechnung (\(timeVM.selectedMonth))")
+                    Text("\(lang.text("Monatsabrechnung")) (\(timeVM.selectedMonth))")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.blue)
                         .textCase(.uppercase)
-                    Text("Deine Lohnübersicht")
+                    Text(lang.text("Deine Lohnübersicht"))
                         .font(.title2)
                         .fontWeight(.heavy)
                 }
@@ -57,13 +60,13 @@ struct WorkerSummaryView: View {
                 VStack(spacing: 16) {
                     HStack(spacing: 12) {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Geleistete Stunden")
+                            Text(lang.text("Geleistete Stunden"))
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.blue)
                             Text("\(TimeCalculations.formatHours(calculations.totalHours)) h")
                                 .font(.title)
                                 .fontWeight(.black)
-                            Text("\(userEntries.count) Einsatztage")
+                            Text("\(userEntries.count) \(lang.text("Einsatztage"))")
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                         }
@@ -73,13 +76,13 @@ struct WorkerSummaryView: View {
                         .cornerRadius(16)
                         
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("Dein Stundenlohn")
+                            Text(lang.text("Dein Stundenlohn"))
                                 .font(.system(size: 10, weight: .bold))
                                 .foregroundColor(.green)
                             Text(TimeCalculations.formatCurrency(calculations.workerRate))
                                 .font(.title)
                                 .fontWeight(.black)
-                            Text("pro Stunde")
+                            Text(lang.text("pro Stunde"))
                                 .font(.system(size: 11))
                                 .foregroundColor(.secondary)
                         }
@@ -94,7 +97,7 @@ struct WorkerSummaryView: View {
                     // Detaillierte Posten
                     VStack(spacing: 10) {
                         HStack {
-                            Text("Grundlohn:")
+                            Text(lang.text("Grundlohn:"))
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                             Spacer()
@@ -108,7 +111,7 @@ struct WorkerSummaryView: View {
                             HStack {
                                 HStack(spacing: 4) {
                                     Image(systemName: "fuelpump.fill").foregroundColor(.orange).font(.caption2)
-                                    Text("Benzingeld-Erstattung:")
+                                    Text(lang.text("Benzingeld-Erstattung:"))
                                 }
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -125,7 +128,7 @@ struct WorkerSummaryView: View {
                             HStack {
                                 HStack(spacing: 4) {
                                     Image(systemName: "banknote.fill").foregroundColor(.green).font(.caption2)
-                                    Text("Material / Auslagen-Erstattung:")
+                                    Text(lang.text("Material / Auslagen-Erstattung:"))
                                 }
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
@@ -140,7 +143,7 @@ struct WorkerSummaryView: View {
                         // Anzahlung
                         if calculations.deposit > 0 {
                             HStack {
-                                Text("Bereits erhaltene Anzahlung:")
+                                Text(lang.text("Bereits erhaltene Anzahlung:"))
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -155,10 +158,10 @@ struct WorkerSummaryView: View {
                         
                         HStack {
                             VStack(alignment: .leading, spacing: 1) {
-                                Text("Endgültiger Gesamtlohn")
+                                Text(lang.text("Endgültiger Gesamtlohn"))
                                     .font(.subheadline)
                                     .fontWeight(.bold)
-                                Text("Auszahlungsbetrag")
+                                Text(lang.text("Auszahlungsbetrag"))
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -178,7 +181,7 @@ struct WorkerSummaryView: View {
                 
                 // Einsätze des Monats
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Alle Einsätze in diesem Monat (\(userEntries.count))")
+                    Text("\(lang.text("Alle Einsätze in diesem Monat")) (\(userEntries.count))")
                         .font(.caption)
                         .fontWeight(.bold)
                         .foregroundColor(.secondary)
@@ -186,7 +189,7 @@ struct WorkerSummaryView: View {
                         .padding(.horizontal, 16)
                     
                     if userEntries.isEmpty {
-                        Text("Noch keine Arbeitszeiten für diesen Monat eingetragen.")
+                        Text(lang.isArabic ? "لا توجد ساعات عمل مسجلة لهذا الشهر." : "Noch keine Arbeitszeiten für diesen Monat eingetragen.")
                             .font(.footnote)
                             .foregroundColor(.secondary)
                             .padding(16)
@@ -219,7 +222,7 @@ struct WorkerSummaryView: View {
                                             .cornerRadius(6)
                                         
                                         if entry.fuelExpenses > 0 || entry.expenses > 0 {
-                                            Text("+ \(TimeCalculations.formatCurrency(entry.fuelExpenses + entry.expenses)) Spesen")
+                                            Text("+ \(TimeCalculations.formatCurrency(entry.fuelExpenses + entry.expenses)) \(lang.text("Spesen"))")
                                                 .font(.system(size: 9, weight: .semibold))
                                                 .foregroundColor(.orange)
                                         }

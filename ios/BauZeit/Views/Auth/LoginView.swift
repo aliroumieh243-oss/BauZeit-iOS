@@ -5,6 +5,7 @@ import UIKit
 
 struct LoginView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var lang: LanguageManager
     @Environment(\.colorScheme) var colorScheme
     
     @State private var isRegisterMode: Bool = false
@@ -20,7 +21,7 @@ struct LoginView: View {
     
     var body: some View {
         ZStack {
-            // MARK: - Premium Background (Eliminates all black bars & empty letterboxing)
+            // MARK: - Premium Background
             backgroundLayer
                 .ignoresSafeArea()
             
@@ -37,7 +38,34 @@ struct LoginView: View {
             
             // MARK: - Main Scrollable Content
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 28) {
+                VStack(spacing: 24) {
+                    
+                    // Sprachumschalter direkt oben rechts
+                    HStack {
+                        Spacer()
+                        Button(action: {
+                            #if canImport(UIKit)
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            #endif
+                            withAnimation {
+                                lang.currentLanguage = (lang.currentLanguage == .german) ? .arabic : .german
+                            }
+                        }) {
+                            HStack(spacing: 6) {
+                                Image(systemName: "globe")
+                                Text(lang.currentLanguage == .german ? "العربية 🇸🇦" : "Deutsch 🇩🇪")
+                                    .fontWeight(.bold)
+                            }
+                            .font(.system(size: 13, design: .rounded))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.06))
+                            .foregroundColor(.primary)
+                            .clipShape(Capsule())
+                        }
+                    }
+                    .padding(.horizontal, 24)
+                    .padding(.top, 12)
                     
                     // MARK: - App Logo & Brand Header
                     VStack(spacing: 12) {
@@ -86,14 +114,13 @@ struct LoginView: View {
                                 .shadow(color: .black.opacity(0.2), radius: 10, y: 5)
                             }
                         }
-                        .padding(.top, 24)
                         
                         VStack(spacing: 6) {
-                            Text("BauZeit")
+                            Text(lang.text("BauZeit"))
                                 .font(.system(size: 32, weight: .black, design: .rounded))
                                 .foregroundColor(.primary)
                             
-                            Text("Digitale Zeiterfassung für Handwerk & Baustelle")
+                            Text(lang.text("Digitale Zeiterfassung für Handwerk & Baustelle"))
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                                 .multilineTextAlignment(.center)
@@ -106,14 +133,14 @@ struct LoginView: View {
                         
                         // Switcher: Anmelden vs Konto erstellen
                         HStack(spacing: 0) {
-                            modeButton(title: "Anmelden", active: !isRegisterMode) {
+                            modeButton(title: lang.text("Anmelden"), active: !isRegisterMode) {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                                     isRegisterMode = false
                                     authVM.errorMessage = nil
                                 }
                             }
                             
-                            modeButton(title: "Konto erstellen", active: isRegisterMode) {
+                            modeButton(title: lang.text("Konto erstellen"), active: isRegisterMode) {
                                 withAnimation(.spring(response: 0.35, dampingFraction: 0.75)) {
                                     isRegisterMode = true
                                     authVM.errorMessage = nil
@@ -125,7 +152,7 @@ struct LoginView: View {
                         .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                         
                         // Section Subheader
-                        Text(isRegisterMode ? "Neues Mitarbeiterkonto anlegen" : "Geschützter Login")
+                        Text(isRegisterMode ? lang.text("Neues Mitarbeiterkonto anlegen") : lang.text("Geschützter Login"))
                             .font(.system(size: 17, weight: .semibold, design: .rounded))
                             .foregroundColor(.primary)
                         
@@ -155,11 +182,11 @@ struct LoginView: View {
                         VStack(spacing: 14) {
                             if isRegisterMode {
                                 inputField(
-                                    label: "Vollständiger Name",
+                                    label: lang.text("Vollständiger Name"),
                                     icon: "person.fill",
-                                    placeholder: "Vor- und Nachname"
+                                    placeholder: lang.text("Vor- und Nachname")
                                 ) {
-                                    TextField("Vor- und Nachname", text: $name)
+                                    TextField(lang.text("Vor- und Nachname"), text: $name)
                                         #if os(iOS)
                                         .autocapitalization(.words)
                                         .textContentType(.name)
@@ -168,7 +195,7 @@ struct LoginView: View {
                             }
                             
                             inputField(
-                                label: "E-Mail Adresse",
+                                label: lang.text("E-Mail Adresse"),
                                 icon: "envelope.fill",
                                 placeholder: "name@bauzeit.de"
                             ) {
@@ -182,18 +209,18 @@ struct LoginView: View {
                             }
                             
                             inputField(
-                                label: "Passwort",
+                                label: lang.text("Passwort"),
                                 icon: "lock.fill",
-                                placeholder: "Passwort"
+                                placeholder: lang.text("Passwort")
                             ) {
                                 HStack {
                                     if showPassword {
-                                        TextField("Passwort", text: $password)
+                                        TextField(lang.text("Passwort"), text: $password)
                                             #if os(iOS)
                                             .autocapitalization(.none)
                                             #endif
                                     } else {
-                                        SecureField("Passwort", text: $password)
+                                        SecureField(lang.text("Passwort"), text: $password)
                                     }
                                     
                                     Button(action: { showPassword.toggle() }) {
@@ -208,12 +235,12 @@ struct LoginView: View {
                             if isRegisterMode {
                                 VStack(alignment: .leading, spacing: 6) {
                                     HStack {
-                                        Text("Admin-Sicherheitscode (Optional)")
+                                        Text(lang.text("Admin-Sicherheitscode (Optional)"))
                                             .font(.caption)
                                             .fontWeight(.bold)
                                             .foregroundColor(.secondary)
                                         Spacer()
-                                        Text("Nur für Inhaber")
+                                        Text(lang.text("Nur für Inhaber"))
                                             .font(.system(size: 11, weight: .semibold))
                                             .foregroundColor(.orange)
                                     }
@@ -222,7 +249,7 @@ struct LoginView: View {
                                         Image(systemName: "key.fill")
                                             .foregroundColor(.orange)
                                             .frame(width: 20)
-                                        SecureField("Code für Admin-Rechte", text: $adminCode)
+                                        SecureField(lang.text("Code für Admin-Rechte"), text: $adminCode)
                                             #if os(iOS)
                                             .autocapitalization(.allCharacters)
                                             #endif
@@ -243,9 +270,9 @@ struct LoginView: View {
                         Button(action: handleAction) {
                             HStack(spacing: 8) {
                                 Spacer()
-                                Text(isRegisterMode ? "Konto erstellen" : "Anmelden")
+                                Text(isRegisterMode ? lang.text("Konto erstellen") : lang.text("Anmelden"))
                                     .font(.system(size: 17, weight: .bold, design: .rounded))
-                                Image(systemName: "arrow.right")
+                                Image(systemName: lang.isArabic ? "arrow.left" : "arrow.right")
                                     .font(.system(size: 16, weight: .bold))
                                 Spacer()
                             }

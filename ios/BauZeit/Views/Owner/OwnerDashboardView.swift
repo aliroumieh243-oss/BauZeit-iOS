@@ -6,10 +6,12 @@ import UIKit
 struct OwnerDashboardView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var timeVM: TimeTrackingViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     @State private var selectedWorkerId: String = ""
     @State private var isAddWorkerPresented: Bool = false
     @State private var isEditingSettlement: Bool = false
+    @State private var isMonthlyDocPresented: Bool = false
     
     @State private var depositText: String = "0"
     @State private var operatingText: String = "0"
@@ -51,22 +53,23 @@ struct OwnerDashboardView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 16) {
-                // Header & Worker Selector
+                
+                // MARK: - Header & Worker Selector
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Inhaber-Übersicht (\(timeVM.selectedMonth))")
+                            Text("\(lang.text("Inhaber-Übersicht")) (\(timeVM.selectedMonth))")
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundColor(.orange)
                                 .textCase(.uppercase)
-                            Text("Abrechnung & Finanzen")
+                            Text(lang.text("Abrechnung & Finanzen"))
                                 .font(.title2)
                                 .fontWeight(.heavy)
                         }
                         Spacer()
                         Button(action: { isAddWorkerPresented = true }) {
-                            Label("Arbeiter", systemImage: "person.badge.plus")
+                            Label(lang.text("Arbeiter"), systemImage: "person.badge.plus")
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .padding(.horizontal, 10)
@@ -115,12 +118,46 @@ struct OwnerDashboardView: View {
                 .padding(.horizontal, 16)
                 .padding(.top, 12)
                 
-                // Financial Card
+                // MARK: - KI-Monatsdokument & Tabellen-Export Banner
+                Button(action: {
+                    #if canImport(UIKit)
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    #endif
+                    isMonthlyDocPresented = true
+                }) {
+                    HStack(spacing: 12) {
+                        Circle()
+                            .fill(Color.white.opacity(0.2))
+                            .frame(width: 38, height: 38)
+                            .overlay(Image(systemName: "sparkles").foregroundColor(.white).font(.system(size: 18, weight: .bold)))
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(lang.isArabic ? "تقرير وتصدير الجدول الذكي" : "KI-Monatsdokument & Tabellen-Export")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                            Text(lang.isArabic ? "جاهز للنقل المباشر إلى الإكسل أو الجداول" : "Alle Daten fertig vorbereitet für Excel / Tabelle")
+                                .font(.caption2)
+                                .opacity(0.9)
+                        }
+                        Spacer()
+                        Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
+                            .font(.footnote)
+                            .opacity(0.8)
+                    }
+                    .padding(14)
+                    .background(LinearGradient(colors: [Color.blue, Color.purple], startPoint: .leading, endPoint: .trailing))
+                    .foregroundColor(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                    .shadow(color: Color.blue.opacity(0.3), radius: 8, y: 3)
+                }
+                .padding(.horizontal, 16)
+                
+                // MARK: - Financial Card
                 if let worker = activeWorker {
                     VStack(alignment: .leading, spacing: 14) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Abrechnung \(timeVM.selectedMonth)")
+                                Text("\(lang.text("Monatsabrechnung")) \(timeVM.selectedMonth)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(.secondary)
                                     .textCase(.uppercase)
@@ -138,7 +175,7 @@ struct OwnerDashboardView: View {
                                     isEditingSettlement = true
                                 }
                             }) {
-                                Text(isEditingSettlement ? "Fertig" : "Anzahlung / Kosten")
+                                Text(isEditingSettlement ? lang.text("Fertig") : (lang.isArabic ? "تعديل السلفة" : "Anzahlung / Kosten"))
                                     .font(.caption)
                                     .fontWeight(.bold)
                                     .padding(.horizontal, 10)
@@ -153,13 +190,13 @@ struct OwnerDashboardView: View {
                         // Highlights: AR vs Worker
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Kunden-Abrechnung AR (\(TimeCalculations.formatCurrency(calculations.clientRate))/h)")
+                                Text("\(lang.text("Kunden-Abrechnung AR")) (\(TimeCalculations.formatCurrency(calculations.clientRate))/h)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(.blue)
                                 Text(TimeCalculations.formatCurrency(calculations.clientTotalAmount))
                                     .font(.title3)
                                     .fontWeight(.black)
-                                Text("\(TimeCalculations.formatHours(calculations.totalHours)) h Gesamtsumme")
+                                Text("\(TimeCalculations.formatHours(calculations.totalHours)) h")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                             }
@@ -169,13 +206,13 @@ struct OwnerDashboardView: View {
                             .cornerRadius(14)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Mitarbeiter-Lohn (\(TimeCalculations.formatCurrency(calculations.workerRate))/h)")
+                                Text("\(lang.text("Mitarbeiter-Lohn")) (\(TimeCalculations.formatCurrency(calculations.workerRate))/h)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(.green)
                                 Text(TimeCalculations.formatCurrency(calculations.workerTotalAmount))
                                     .font(.title3)
                                     .fontWeight(.black)
-                                Text("Grundlohn vor Spesen")
+                                Text(lang.isArabic ? "الراتب الأساسي" : "Grundlohn vor Spesen")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                             }
@@ -188,11 +225,11 @@ struct OwnerDashboardView: View {
                         // Aufschlüsselung inklusive Benzin und Auslagen
                         VStack(spacing: 8) {
                             HStack {
-                                Text("Geleistete Monatsstunden:")
+                                Text(lang.text("Geleistete Monatsstunden:"))
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Text("\(TimeCalculations.formatHours(calculations.totalHours)) Stunden")
+                                Text("\(TimeCalculations.formatHours(calculations.totalHours)) \(lang.text("Std."))")
                                     .font(.footnote)
                                     .fontWeight(.bold)
                             }
@@ -202,7 +239,7 @@ struct OwnerDashboardView: View {
                                 HStack {
                                     HStack(spacing: 4) {
                                         Image(systemName: "fuelpump.fill").foregroundColor(.orange).font(.caption2)
-                                        Text("Erstattung Benzingeld:")
+                                        Text(lang.text("Erstattung Benzingeld:"))
                                     }
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -219,7 +256,7 @@ struct OwnerDashboardView: View {
                                 HStack {
                                     HStack(spacing: 4) {
                                         Image(systemName: "banknote.fill").foregroundColor(.green).font(.caption2)
-                                        Text("Erstattung Material / Auslagen:")
+                                        Text(lang.text("Erstattung Material / Auslagen:"))
                                     }
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
@@ -233,7 +270,7 @@ struct OwnerDashboardView: View {
                             
                             // Anzahlung
                             HStack {
-                                Text("Geleistete Anzahlung (Abzug):")
+                                Text(lang.text("Geleistete Anzahlung (Abzug):"))
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -255,7 +292,7 @@ struct OwnerDashboardView: View {
                             
                             // Betriebskosten
                             HStack {
-                                Text("Jasin Betriebskosten:")
+                                Text(lang.text("Jasin Betriebskosten:"))
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                                 Spacer()
@@ -278,10 +315,10 @@ struct OwnerDashboardView: View {
                             
                             HStack {
                                 VStack(alignment: .leading, spacing: 1) {
-                                    Text("Endgültiger Gesamtlohn")
+                                    Text(lang.text("Endgültiger Gesamtlohn"))
                                         .font(.footnote)
                                         .fontWeight(.bold)
-                                    Text("Inkl. Spesen & nach Anzahlung")
+                                    Text(lang.text("Inkl. Spesen & nach Anzahlung"))
                                         .font(.system(size: 10))
                                         .foregroundColor(.secondary)
                                 }
@@ -302,7 +339,7 @@ struct OwnerDashboardView: View {
                     
                     // Einsätze-Liste
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("Erfasste Einsätze (\(activeWorkerEntries.count))")
+                        Text("\(lang.text("Erfasste Einsätze")) (\(activeWorkerEntries.count))")
                             .font(.caption)
                             .fontWeight(.bold)
                             .foregroundColor(.secondary)
@@ -310,7 +347,7 @@ struct OwnerDashboardView: View {
                             .padding(.horizontal, 16)
                         
                         if activeWorkerEntries.isEmpty {
-                            Text("Noch keine Arbeitszeiten für diesen Monat eingetragen.")
+                            Text(lang.isArabic ? "لا توجد ساعات عمل مسجلة لهذا الشهر حتى الآن." : "Noch keine Arbeitszeiten für diesen Monat eingetragen.")
                                 .font(.footnote)
                                 .foregroundColor(.secondary)
                                 .padding(16)
@@ -343,7 +380,7 @@ struct OwnerDashboardView: View {
                                                 .cornerRadius(6)
                                             
                                             if entry.fuelExpenses > 0 || entry.expenses > 0 {
-                                                Text("+ \(TimeCalculations.formatCurrency(entry.fuelExpenses + entry.expenses)) Spesen")
+                                                Text("+ \(TimeCalculations.formatCurrency(entry.fuelExpenses + entry.expenses))")
                                                     .font(.system(size: 9, weight: .semibold))
                                                     .foregroundColor(.orange)
                                             }
@@ -364,6 +401,9 @@ struct OwnerDashboardView: View {
         .background(Color.appBackground)
         .sheet(isPresented: $isAddWorkerPresented) {
             AddWorkerSheet()
+        }
+        .sheet(isPresented: $isMonthlyDocPresented) {
+            MonthlyDocumentView()
         }
     }
     

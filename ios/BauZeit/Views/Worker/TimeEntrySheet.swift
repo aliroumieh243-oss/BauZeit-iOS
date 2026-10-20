@@ -6,6 +6,7 @@ import UIKit
 struct TimeEntrySheet: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var timeVM: TimeTrackingViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     let dateStr: String // "YYYY-MM-DD"
     let formattedDate: String // "Mo. 19. Okt"
@@ -71,7 +72,7 @@ struct TimeEntrySheet: View {
                     VStack(alignment: .leading, spacing: 10) {
                         HStack {
                             VStack(alignment: .leading, spacing: 2) {
-                                Text("Geleistete Arbeitszeit")
+                                Text(lang.text("Geleistete Arbeitszeit"))
                                     .font(.caption)
                                     .fontWeight(.bold)
                                     .foregroundColor(.blue)
@@ -82,10 +83,10 @@ struct TimeEntrySheet: View {
                             }
                             Spacer()
                             VStack(alignment: .trailing, spacing: 1) {
-                                Text("\(TimeCalculations.formatHours(liveDecimalHours)) Std.")
+                                Text("\(TimeCalculations.formatHours(liveDecimalHours)) \(lang.text("Std."))")
                                     .font(.system(size: 24, weight: .black, design: .rounded))
                                     .foregroundColor(.blue)
-                                Text("Pause: \(breakMinutes) Min.")
+                                Text("\(lang.text("Pause:")) \(breakMinutes) \(lang.text("Minuten"))")
                                     .font(.caption2)
                                     .foregroundColor(.secondary)
                             }
@@ -100,7 +101,7 @@ struct TimeEntrySheet: View {
                                         Image(systemName: "fuelpump.fill")
                                             .foregroundColor(.orange)
                                             .font(.caption)
-                                        Text("Sprit: \(TimeCalculations.formatCurrency(parsedFuelExpenses))")
+                                        Text("\(lang.text("Benzin:")) \(TimeCalculations.formatCurrency(parsedFuelExpenses))")
                                             .font(.caption)
                                             .fontWeight(.semibold)
                                     }
@@ -111,7 +112,7 @@ struct TimeEntrySheet: View {
                                         Image(systemName: "banknote.fill")
                                             .foregroundColor(.green)
                                             .font(.caption)
-                                        Text("Auslagen: \(TimeCalculations.formatCurrency(parsedExpenses))")
+                                        Text("\(lang.text("Auslagen:")) \(TimeCalculations.formatCurrency(parsedExpenses))")
                                             .font(.caption)
                                             .fontWeight(.semibold)
                                     }
@@ -123,22 +124,22 @@ struct TimeEntrySheet: View {
                 }
                 
                 // MARK: - Arbeitszeiten mit echter nativer iOS-Uhr
-                Section("Arbeitszeit (Beginn & Ende)") {
-                    DatePicker("Arbeitsbeginn", selection: $startDate, displayedComponents: .hourAndMinute)
+                Section(lang.text("Arbeitszeit (Beginn & Ende)")) {
+                    DatePicker(lang.text("Arbeitsbeginn"), selection: $startDate, displayedComponents: .hourAndMinute)
                         .datePickerStyle(.compact)
                     
-                    DatePicker("Feierabend", selection: $endDate, displayedComponents: .hourAndMinute)
+                    DatePicker(lang.text("Feierabend"), selection: $endDate, displayedComponents: .hourAndMinute)
                         .datePickerStyle(.compact)
                 }
                 
                 // MARK: - Tägliche Pause
-                Section("Tägliche Pause") {
+                Section(lang.text("Tägliche Pause")) {
                     HStack {
                         Image(systemName: "cup.and.saucer.fill")
                             .foregroundColor(.brown)
-                        Text("Pause:")
+                        Text(lang.text("Pause:"))
                         Spacer()
-                        Text("\(breakMinutes) Minuten")
+                        Text("\(breakMinutes) \(lang.text("Minuten"))")
                             .fontWeight(.bold)
                     }
                     
@@ -151,7 +152,7 @@ struct TimeEntrySheet: View {
                                 #endif
                                 breakMinutes = mins
                             }) {
-                                Text(mins == 0 ? "Keine" : "\(mins)m")
+                                Text(mins == 0 ? lang.text("Keine") : "\(mins)m")
                                     .font(.caption)
                                     .fontWeight(breakMinutes == mins ? .bold : .regular)
                                     .frame(maxWidth: .infinity)
@@ -165,16 +166,16 @@ struct TimeEntrySheet: View {
                     }
                     .padding(.vertical, 2)
                     
-                    Stepper("Feinjustierung: \(breakMinutes) Min.", value: $breakMinutes, in: 0...180, step: 5)
+                    Stepper("\(lang.text("Pause:")) \(breakMinutes) \(lang.text("Minuten"))", value: $breakMinutes, in: 0...180, step: 5)
                         .font(.footnote)
                 }
                 
                 // MARK: - Baustelle & Einsatzort
-                Section("Baustelle / Einsatzort") {
+                Section(lang.text("Baustelle / Einsatzort")) {
                     HStack {
                         Image(systemName: "building.2.fill")
                             .foregroundColor(.blue)
-                        TextField("z.B. Baustelle HafenCity", text: $siteDescription)
+                        TextField(lang.text("z.B. Baustelle HafenCity"), text: $siteDescription)
                     }
                     
                     ScrollView(.horizontal, showsIndicators: false) {
@@ -198,11 +199,11 @@ struct TimeEntrySheet: View {
                     }
                 }
                 
-                // MARK: - NEU: Auslagen & Benzingeld
+                // MARK: - Auslagen & Benzingeld
                 Section {
                     // Benzingeld
                     HStack {
-                        Label("Benzingeld / Sprit", systemImage: "fuelpump.fill")
+                        Label(lang.text("Benzingeld / Sprit"), systemImage: "fuelpump.fill")
                             .foregroundColor(.orange)
                         Spacer()
                         TextField("0,00", text: $fuelExpensesText)
@@ -215,7 +216,7 @@ struct TimeEntrySheet: View {
                     
                     // Sonstige Auslagen / Material
                     HStack {
-                        Label("Geld ausgegeben", systemImage: "banknote.fill")
+                        Label(lang.text("Geld ausgegeben"), systemImage: "banknote.fill")
                             .foregroundColor(.green)
                         Spacer()
                         TextField("0,00", text: $expensesText)
@@ -231,17 +232,17 @@ struct TimeEntrySheet: View {
                         HStack {
                             Image(systemName: "text.bubble.fill")
                                 .foregroundColor(.secondary)
-                            TextField("Zweck (z.B. Tanken Sprinter, Schrauben OBI)", text: $expenseNote)
+                            TextField(lang.text("Zweck (z.B. Tanken Sprinter, Schrauben OBI)"), text: $expenseNote)
                                 .font(.footnote)
                         }
                     }
                 } header: {
-                    Text("Auslagen & Fahrtkosten")
+                    Text(lang.text("Auslagen & Fahrtkosten"))
                 }
                 
                 // MARK: - Allgemeine Notizen
-                Section("Optionale Notizen") {
-                    TextField("Besonderheiten, Wetter, Zusatzarbeiten...", text: $notes)
+                Section(lang.text("Optionale Notizen")) {
+                    TextField(lang.text("Besonderheiten, Wetter, Zusatzarbeiten..."), text: $notes)
                         .font(.footnote)
                 }
                 
@@ -255,7 +256,7 @@ struct TimeEntrySheet: View {
                             HStack {
                                 Spacer()
                                 Image(systemName: "trash.fill")
-                                Text("Tageseintrag löschen")
+                                Text(lang.text("Tageseintrag löschen"))
                                     .fontWeight(.semibold)
                                 Spacer()
                             }
@@ -269,10 +270,10 @@ struct TimeEntrySheet: View {
             #endif
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Abbrechen") { dismiss() }
+                    Button(lang.text("Abbrechen")) { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Speichern") {
+                    Button(lang.text("Speichern")) {
                         #if canImport(UIKit)
                         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
                         #endif
@@ -296,7 +297,6 @@ struct TimeEntrySheet: View {
             }
             .onAppear {
                 if let e = existingEntry {
-                    // Startzeit & Endzeit in Date parsen
                     let parser = DateFormatter()
                     parser.dateFormat = "HH:mm"
                     if let s = parser.date(from: e.startTime) {

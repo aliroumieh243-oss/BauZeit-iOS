@@ -6,6 +6,7 @@ import UIKit
 struct CalendarView: View {
     @EnvironmentObject var authVM: AuthViewModel
     @EnvironmentObject var timeVM: TimeTrackingViewModel
+    @EnvironmentObject var lang: LanguageManager
     
     let targetUserId: String?
     
@@ -43,18 +44,22 @@ struct CalendarView: View {
     
     var todayFormattedString: String {
         let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "de_DE")
+        formatter.locale = Locale(identifier: lang.isArabic ? "ar" : "de_DE")
         formatter.dateFormat = "EEE. dd. MMM"
         return formatter.string(from: Date())
     }
     
-    let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni",
-                      "Juli", "August", "September", "Oktober", "November", "Dezember"]
-    let weekdayNames = ["So.", "Mo.", "Di.", "Mi.", "Do.", "Fr.", "Sa."]
+    var monthNames: [String] {
+        lang.monthNames
+    }
+    
+    var weekdayNames: [String] {
+        lang.weekdayNames
+    }
     
     var daysForMonth: [DayInfo] {
         var calendar = Calendar(identifier: .gregorian)
-        calendar.locale = Locale(identifier: "de_DE")
+        calendar.locale = Locale(identifier: lang.isArabic ? "ar" : "de_DE")
         
         var components = DateComponents()
         components.year = year
@@ -76,11 +81,12 @@ struct CalendarView: View {
             guard let date = calendar.date(from: components) else { continue }
             
             let weekdayIndex = calendar.component(.weekday, from: date) - 1
-            let dayOfWeek = weekdayNames[weekdayIndex]
+            let dayOfWeek = (weekdayIndex >= 0 && weekdayIndex < weekdayNames.count) ? weekdayNames[weekdayIndex] : ""
             let isWeekend = (weekdayIndex == 0 || weekdayIndex == 6)
             
             let dateIso = String(format: "%04d-%02d-%02d", year, month, day)
-            let formatted = String(format: "%@ %02d. %@", dayOfWeek, day, monthNames[month - 1].prefix(3) as CVarArg)
+            let monthName = (month - 1 < monthNames.count) ? monthNames[month - 1] : ""
+            let formatted = String(format: "%@ %02d. %@", dayOfWeek, day, String(monthName.prefix(4)))
             
             result.append(DayInfo(
                 id: dateIso,
@@ -118,7 +124,7 @@ struct CalendarView: View {
             // MARK: - Modern Month Navigator Bar
             HStack(spacing: 12) {
                 Button(action: prevMonth) {
-                    Image(systemName: "chevron.left")
+                    Image(systemName: lang.isArabic ? "chevron.right" : "chevron.left")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.primary)
                         .padding(10)
@@ -139,7 +145,7 @@ struct CalendarView: View {
                 // Schnell-Sprung zu "Heute"
                 if !isCurrentMonthDisplayed {
                     Button(action: jumpToToday) {
-                        Text("Heute")
+                        Text(lang.text("Heute"))
                             .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.blue)
                             .padding(.horizontal, 10)
@@ -150,7 +156,7 @@ struct CalendarView: View {
                 }
                 
                 Button(action: nextMonth) {
-                    Image(systemName: "chevron.right")
+                    Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(.primary)
                         .padding(10)
@@ -172,10 +178,10 @@ struct CalendarView: View {
                         .overlay(Image(systemName: "clock.fill").foregroundColor(.blue).font(.system(size: 16)))
                     
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Monatsstunden")
+                        Text(lang.text("Monatsstunden"))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
-                        Text("\(TimeCalculations.formatHours(totalHoursForMonth)) Std.")
+                        Text("\(TimeCalculations.formatHours(totalHoursForMonth)) \(lang.text("Std."))")
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .foregroundColor(.primary)
                     }
@@ -186,7 +192,7 @@ struct CalendarView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
                 
-                // Tage & Auslagen
+                // Tage & Einsätze
                 HStack(spacing: 10) {
                     Circle()
                         .fill(Color.green.opacity(0.15))
@@ -194,10 +200,10 @@ struct CalendarView: View {
                         .overlay(Image(systemName: "calendar.badge.checkmark").foregroundColor(.green).font(.system(size: 16)))
                     
                     VStack(alignment: .leading, spacing: 1) {
-                        Text("Arbeitstage")
+                        Text(lang.text("Arbeitstage"))
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.secondary)
-                        Text("\(monthlyEntries.count) Tage")
+                        Text("\(monthlyEntries.count) \(lang.text("Tage"))")
                             .font(.system(size: 16, weight: .black, design: .rounded))
                             .foregroundColor(.primary)
                     }
@@ -219,7 +225,7 @@ struct CalendarView: View {
                             Image(systemName: "fuelpump.fill")
                                 .foregroundColor(.orange)
                                 .font(.caption)
-                            Text("Benzin: \(TimeCalculations.formatCurrency(totalFuelForMonth))")
+                            Text("\(lang.text("Benzin:")) \(TimeCalculations.formatCurrency(totalFuelForMonth))")
                                 .font(.caption)
                                 .fontWeight(.bold)
                         }
@@ -229,7 +235,7 @@ struct CalendarView: View {
                             Image(systemName: "banknote.fill")
                                 .foregroundColor(.green)
                                 .font(.caption)
-                            Text("Auslagen: \(TimeCalculations.formatCurrency(totalExpensesForMonth))")
+                            Text("\(lang.text("Auslagen:")) \(TimeCalculations.formatCurrency(totalExpensesForMonth))")
                                 .font(.caption)
                                 .fontWeight(.bold)
                         }
@@ -311,7 +317,9 @@ struct CalendarView: View {
                                         .padding(.top, 1)
                                     }
                                 } else {
-                                    Text(day.isWeekend ? "Wochenende" : (day.isToday ? "Heute (Noch nicht erfasst)" : "Kein Eintrag"))
+                                    Text(day.isWeekend
+                                         ? lang.text("Wochenende")
+                                         : (day.isToday ? lang.text("Heute (Noch nicht erfasst)") : lang.text("Kein Eintrag")))
                                         .font(.subheadline)
                                         .fontWeight(day.isToday ? .semibold : .regular)
                                         .foregroundColor(day.isToday ? .blue : .secondary)
@@ -322,7 +330,7 @@ struct CalendarView: View {
                             
                             // Rechter Bereich: Stunden-Pille oder direktes Plus zum Eintragen
                             if let e = day.entry {
-                                Text("\(TimeCalculations.formatHours(e.decimalHours)) Std.")
+                                Text("\(TimeCalculations.formatHours(e.decimalHours)) \(lang.text("Std."))")
                                     .font(.system(size: 12, weight: .bold, design: .rounded))
                                     .padding(.horizontal, 9)
                                     .padding(.vertical, 5)
@@ -354,7 +362,7 @@ struct CalendarView: View {
                 }) {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
-                        Text("Heute")
+                        Text(lang.text("Heute"))
                     }
                     .font(.footnote)
                     .fontWeight(.bold)
