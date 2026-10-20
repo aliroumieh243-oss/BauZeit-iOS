@@ -140,12 +140,19 @@ export function calculateMonthlySettlement(
 
   const clientTotalAmount = Math.round(roundedHours * clientRate * 100) / 100;
   const workerTotalAmount = Math.round(roundedHours * workerRate * 100) / 100;
-  const netPayout = Math.round((workerTotalAmount - deposit) * 100) / 100;
+
+  const totalExpenses = entries.reduce((sum, e) => sum + (e.expenses || 0), 0);
+  const totalFuelExpenses = entries.reduce((sum, e) => sum + (e.fuelExpenses || 0), 0);
+
+  // Net payout = worker wages + expenses reimbursement + fuel reimbursement - deposit
+  const netPayout = Math.round((workerTotalAmount + totalExpenses + totalFuelExpenses - deposit) * 100) / 100;
 
   return {
     totalHours: roundedHours,
     clientTotalAmount,
     workerTotalAmount,
+    totalExpenses,
+    totalFuelExpenses,
     deposit,
     operatingExpenses,
     netPayout,

@@ -22,6 +22,9 @@ export interface TimeEntry {
   siteDescription: string; // "Baustelle Beschreibung", e.g. "Musterstraße 12 - Trockenbau"
   decimalHours: number;    // Calculated: e.g. 3.00, 7.00, 8.50, 10.00
   notes?: string;
+  expenses?: number;       // Geld ausgegeben (Material, Werkzeug)
+  fuelExpenses?: number;   // Benzingeld / Sprit
+  expenseNote?: string;    // Notiz zu den Ausgaben
   updatedAt: string;
 }
 
@@ -40,9 +43,11 @@ export interface MonthlyCalculations {
   totalHours: number;              // Sum of all decimal hours
   clientTotalAmount: number;       // Mitarbeiter AR: totalHours * clientRate (e.g. 2.712,50 €)
   workerTotalAmount: number;       // Mitarbeiter Lohn: totalHours * workerRate (e.g. 930,00 €)
+  totalExpenses: number;           // Summe Geld ausgegeben
+  totalFuelExpenses: number;       // Summe Benzingeld
   deposit: number;                 // Anzahlung (e.g. 208,50 €)
   operatingExpenses: number;       // Jasin Betriebskosten (e.g. 0,00 €)
-  netPayout: number;               // Gesamtlohn: workerTotalAmount - deposit (e.g. 721,50 €)
+  netPayout: number;               // Gesamtlohn: workerTotalAmount + totalExpenses + totalFuelExpenses - deposit
   clientRate: number;              // Current client rate applied (e.g. 35,00 €)
   workerRate: number;              // Current worker rate applied (e.g. 12,00 €)
 }
