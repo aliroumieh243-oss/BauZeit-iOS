@@ -10,7 +10,61 @@ struct TimeEntry: Identifiable, Codable {
     var siteDescription: String
     var decimalHours: Double
     var notes: String?
+    var expenses: Double = 0.0 // Geld ausgegeben (z. B. Material, Werkzeug, Einkauf)
+    var fuelExpenses: Double = 0.0 // Benzingeld / Spritkosten
+    var expenseNote: String? = nil // Notiz zu den Ausgaben (z. B. "Tanken Shell")
     var updatedAt: Date = Date()
+    
+    enum CodingKeys: String, CodingKey {
+        case id, userId, date, startTime, endTime, breakMinutes, siteDescription, decimalHours, notes, expenses, fuelExpenses, expenseNote, updatedAt
+    }
+    
+    init(
+        id: String = UUID().uuidString,
+        userId: String,
+        date: String,
+        startTime: String,
+        endTime: String,
+        breakMinutes: Int,
+        siteDescription: String,
+        decimalHours: Double,
+        notes: String? = nil,
+        expenses: Double = 0.0,
+        fuelExpenses: Double = 0.0,
+        expenseNote: String? = nil,
+        updatedAt: Date = Date()
+    ) {
+        self.id = id
+        self.userId = userId
+        self.date = date
+        self.startTime = startTime
+        self.endTime = endTime
+        self.breakMinutes = breakMinutes
+        self.siteDescription = siteDescription
+        self.decimalHours = decimalHours
+        self.notes = notes
+        self.expenses = expenses
+        self.fuelExpenses = fuelExpenses
+        self.expenseNote = expenseNote
+        self.updatedAt = updatedAt
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.id = try container.decodeIfPresent(String.self, forKey: .id) ?? UUID().uuidString
+        self.userId = try container.decode(String.self, forKey: .userId)
+        self.date = try container.decode(String.self, forKey: .date)
+        self.startTime = try container.decode(String.self, forKey: .startTime)
+        self.endTime = try container.decode(String.self, forKey: .endTime)
+        self.breakMinutes = try container.decode(Int.self, forKey: .breakMinutes)
+        self.siteDescription = try container.decodeIfPresent(String.self, forKey: .siteDescription) ?? "Allgemeine Arbeiten"
+        self.decimalHours = try container.decode(Double.self, forKey: .decimalHours)
+        self.notes = try container.decodeIfPresent(String.self, forKey: .notes)
+        self.expenses = try container.decodeIfPresent(Double.self, forKey: .expenses) ?? 0.0
+        self.fuelExpenses = try container.decodeIfPresent(Double.self, forKey: .fuelExpenses) ?? 0.0
+        self.expenseNote = try container.decodeIfPresent(String.self, forKey: .expenseNote)
+        self.updatedAt = try container.decodeIfPresent(Date.self, forKey: .updatedAt) ?? Date()
+    }
 }
 
 struct MonthlySettlement: Identifiable, Codable {
@@ -26,11 +80,13 @@ struct MonthlySettlement: Identifiable, Codable {
 
 struct MonthlyCalculations {
     let totalHours: Double
-    let clientTotalAmount: Double // Mitarbeiter AR: totalHours * clientRate (z.B. 2.712,50 €)
-    let workerTotalAmount: Double // Mitarbeiter Lohn: totalHours * workerRate (z.B. 930,00 €)
-    let deposit: Double // Anzahlung (z.B. 208,50 €)
-    let operatingExpenses: Double // Jasin Betriebskosten (z.B. 0,00 €)
-    let netPayout: Double // Endgültiger Gesamtlohn: workerTotalAmount - deposit (z.B. 721,50 €)
+    let clientTotalAmount: Double // Kunden-Abrechnung AR: totalHours * clientRate
+    let workerTotalAmount: Double // Grundlohn: totalHours * workerRate
+    let totalExpenses: Double // Summe Auslagen / Material
+    let totalFuelExpenses: Double // Summe Benzingeld
+    let deposit: Double // Geleistete Anzahlung
+    let operatingExpenses: Double // Jasin Betriebskosten
+    let netPayout: Double // Endgültige Auszahlung: workerTotalAmount + totalExpenses + totalFuelExpenses - deposit
     let clientRate: Double
     let workerRate: Double
 }

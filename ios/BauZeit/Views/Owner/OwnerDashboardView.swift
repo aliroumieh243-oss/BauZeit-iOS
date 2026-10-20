@@ -55,7 +55,7 @@ struct OwnerDashboardView: View {
                 VStack(alignment: .leading, spacing: 10) {
                     HStack {
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Inhaber-Übersicht")
+                            Text("Inhaber-Übersicht (\(timeVM.selectedMonth))")
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundColor(.orange)
@@ -86,7 +86,12 @@ struct OwnerDashboardView: View {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
                                 ForEach(workers) { worker in
-                                    Button(action: { selectedWorkerId = worker.id }) {
+                                    Button(action: {
+                                        #if canImport(UIKit)
+                                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                        #endif
+                                        selectedWorkerId = worker.id
+                                    }) {
                                         HStack(spacing: 6) {
                                             Circle()
                                                 .fill(Color.blue.opacity(0.2))
@@ -148,7 +153,7 @@ struct OwnerDashboardView: View {
                         // Highlights: AR vs Worker
                         HStack(spacing: 12) {
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Mitarbeiter AR (\(TimeCalculations.formatCurrency(calculations.clientRate))/h)")
+                                Text("Kunden-Abrechnung AR (\(TimeCalculations.formatCurrency(calculations.clientRate))/h)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(.blue)
                                 Text(TimeCalculations.formatCurrency(calculations.clientTotalAmount))
@@ -164,13 +169,13 @@ struct OwnerDashboardView: View {
                             .cornerRadius(14)
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Mitarbeiter (\(TimeCalculations.formatCurrency(calculations.workerRate))/h)")
+                                Text("Mitarbeiter-Lohn (\(TimeCalculations.formatCurrency(calculations.workerRate))/h)")
                                     .font(.system(size: 10, weight: .bold))
                                     .foregroundColor(.green)
                                 Text(TimeCalculations.formatCurrency(calculations.workerTotalAmount))
                                     .font(.title3)
                                     .fontWeight(.black)
-                                Text("Lohn vor Abzug")
+                                Text("Grundlohn vor Spesen")
                                     .font(.system(size: 10))
                                     .foregroundColor(.secondary)
                             }
@@ -180,7 +185,7 @@ struct OwnerDashboardView: View {
                             .cornerRadius(14)
                         }
                         
-                        // Breakdown
+                        // Aufschlüsselung inklusive Benzin und Auslagen
                         VStack(spacing: 8) {
                             HStack {
                                 Text("Geleistete Monatsstunden:")
@@ -192,6 +197,41 @@ struct OwnerDashboardView: View {
                                     .fontWeight(.bold)
                             }
                             
+                            // Benzingeld
+                            if calculations.totalFuelExpenses > 0 {
+                                HStack {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "fuelpump.fill").foregroundColor(.orange).font(.caption2)
+                                        Text("Erstattung Benzingeld:")
+                                    }
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text("+ \(TimeCalculations.formatCurrency(calculations.totalFuelExpenses))")
+                                        .font(.footnote)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.orange)
+                                }
+                            }
+                            
+                            // Material & Auslagen
+                            if calculations.totalExpenses > 0 {
+                                HStack {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "banknote.fill").foregroundColor(.green).font(.caption2)
+                                        Text("Erstattung Material / Auslagen:")
+                                    }
+                                    .font(.footnote)
+                                    .foregroundColor(.secondary)
+                                    Spacer()
+                                    Text("+ \(TimeCalculations.formatCurrency(calculations.totalExpenses))")
+                                        .font(.footnote)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(.green)
+                                }
+                            }
+                            
+                            // Anzahlung
                             HStack {
                                 Text("Geleistete Anzahlung (Abzug):")
                                     .font(.footnote)
@@ -213,6 +253,7 @@ struct OwnerDashboardView: View {
                                 }
                             }
                             
+                            // Betriebskosten
                             HStack {
                                 Text("Jasin Betriebskosten:")
                                     .font(.footnote)
@@ -240,7 +281,7 @@ struct OwnerDashboardView: View {
                                     Text("Endgültiger Gesamtlohn")
                                         .font(.footnote)
                                         .fontWeight(.bold)
-                                    Text("Nach Abzug Anzahlung")
+                                    Text("Inkl. Spesen & nach Anzahlung")
                                         .font(.system(size: 10))
                                         .foregroundColor(.secondary)
                                 }
@@ -259,7 +300,7 @@ struct OwnerDashboardView: View {
                     .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
                     .padding(.horizontal, 16)
                     
-                    // Entries summary list
+                    // Einsätze-Liste
                     VStack(alignment: .leading, spacing: 8) {
                         Text("Erfasste Einsätze (\(activeWorkerEntries.count))")
                             .font(.caption)
@@ -282,7 +323,7 @@ struct OwnerDashboardView: View {
                                 ForEach(activeWorkerEntries) { entry in
                                     HStack {
                                         VStack(alignment: .leading, spacing: 2) {
-                                            Text("\(entry.date): \(entry.startTime) - \(entry.endTime) Uhr")
+                                            Text("\(entry.date): \(entry.startTime) – \(entry.endTime) Uhr")
                                                 .font(.footnote)
                                                 .fontWeight(.bold)
                                             Text(entry.siteDescription)
@@ -291,14 +332,22 @@ struct OwnerDashboardView: View {
                                                 .lineLimit(1)
                                         }
                                         Spacer()
-                                        Text("\(TimeCalculations.formatHours(entry.decimalHours)) h")
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-                                            .padding(.horizontal, 8)
-                                            .padding(.vertical, 4)
-                                            .background(Color.green.opacity(0.12))
-                                            .foregroundColor(.green)
-                                            .cornerRadius(6)
+                                        VStack(alignment: .trailing, spacing: 2) {
+                                            Text("\(TimeCalculations.formatHours(entry.decimalHours)) h")
+                                                .font(.caption)
+                                                .fontWeight(.bold)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 3)
+                                                .background(Color.green.opacity(0.12))
+                                                .foregroundColor(.green)
+                                                .cornerRadius(6)
+                                            
+                                            if entry.fuelExpenses > 0 || entry.expenses > 0 {
+                                                Text("+ \(TimeCalculations.formatCurrency(entry.fuelExpenses + entry.expenses)) Spesen")
+                                                    .font(.system(size: 9, weight: .semibold))
+                                                    .foregroundColor(.orange)
+                                            }
+                                        }
                                     }
                                     .padding(12)
                                     .background(Color.cardBackground)

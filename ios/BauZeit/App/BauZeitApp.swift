@@ -58,13 +58,13 @@ struct WorkerTabView: View {
         TabView {
             NavigationView {
                 CalendarView(targetUserId: nil)
-                    .navigationTitle("Mein Kalender")
+                    .navigationTitle("Zeiterfassung")
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Kalender", systemImage: "calendar")
+                Label("Zeiten", systemImage: "calendar.badge.clock")
             }
             
             NavigationView {
@@ -111,13 +111,13 @@ struct OwnerTabView: View {
             
             NavigationView {
                 CalendarView(targetUserId: authVM.users.first(where: { $0.role == .member })?.id)
-                    .navigationTitle("Arbeiter-Zeiten")
+                    .navigationTitle("Zeiterfassung")
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)
                     #endif
             }
             .tabItem {
-                Label("Zeiten", systemImage: "calendar")
+                Label("Zeiten", systemImage: "calendar.badge.clock")
             }
             
             NavigationView {

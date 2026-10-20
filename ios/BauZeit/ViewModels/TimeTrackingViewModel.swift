@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 class TimeTrackingViewModel: ObservableObject {
-    @Published var selectedMonth: String = "2026-06"
+    @Published var selectedMonth: String
     @Published var selectedWorkerId: String = ""
     @Published var allEntries: [TimeEntry] = []
     @Published var allSettlements: [MonthlySettlement] = []
@@ -11,6 +11,11 @@ class TimeTrackingViewModel: ObservableObject {
     private let settlementsKey = "bauzeit_ios_settlements"
     
     init() {
+        // Standardmäßig auf den aktuellen Monat einstellen (z. B. "2026-10")
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM"
+        self.selectedMonth = formatter.string(from: Date())
+        
         loadData()
     }
     
@@ -66,7 +71,10 @@ class TimeTrackingViewModel: ObservableObject {
         endTime: String,
         breakMinutes: Int,
         siteDescription: String,
-        notes: String?
+        notes: String?,
+        expenses: Double = 0.0,
+        fuelExpenses: Double = 0.0,
+        expenseNote: String? = nil
     ) {
         let decimalHours = TimeCalculations.calculateDecimalHours(
             startTime: startTime,
@@ -85,6 +93,9 @@ class TimeTrackingViewModel: ObservableObject {
             siteDescription: siteDescription.isEmpty ? "Allgemeine Arbeiten" : siteDescription,
             decimalHours: decimalHours,
             notes: notes,
+            expenses: expenses,
+            fuelExpenses: fuelExpenses,
+            expenseNote: expenseNote,
             updatedAt: Date()
         )
         

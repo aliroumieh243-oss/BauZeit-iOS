@@ -52,12 +52,19 @@ enum TimeCalculations {
         
         let clientTotal = ((roundedHours * clientRate) * 100).rounded() / 100.0
         let workerTotal = ((roundedHours * workerRate) * 100).rounded() / 100.0
-        let netPayout = (((workerTotal - deposit)) * 100).rounded() / 100.0
+        
+        let totalExpenses = entries.reduce(0.0) { $0 + $1.expenses }
+        let totalFuelExpenses = entries.reduce(0.0) { $0 + $1.fuelExpenses }
+        
+        // Endgültige Auszahlung: Lohn + Auslagen-Erstattung + Benzingeld-Erstattung - Anzahlung
+        let netPayout = (((workerTotal + totalExpenses + totalFuelExpenses - deposit)) * 100).rounded() / 100.0
         
         return MonthlyCalculations(
             totalHours: roundedHours,
             clientTotalAmount: clientTotal,
             workerTotalAmount: workerTotal,
+            totalExpenses: totalExpenses,
+            totalFuelExpenses: totalFuelExpenses,
             deposit: deposit,
             operatingExpenses: operatingExpenses,
             netPayout: netPayout,

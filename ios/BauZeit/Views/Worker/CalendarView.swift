@@ -10,8 +10,11 @@ struct CalendarView: View {
     let targetUserId: String?
     
     @State private var selectedDayInfo: DayInfo?
-    @State private var year: Int = 2026
-    @State private var month: Int = 6
+    @State private var isShowingTodaySheet: Bool = false
+    
+    // Automatisch auf das aktuelle reale Datum initialisieren
+    @State private var year: Int = Calendar.current.component(.year, from: Date())
+    @State private var month: Int = Calendar.current.component(.month, from: Date())
     
     struct DayInfo: Identifiable {
         let id: String // "YYYY-MM-DD"
@@ -20,6 +23,7 @@ struct CalendarView: View {
         let dayNumber: Int
         let formattedDate: String
         let isWeekend: Bool
+        let isToday: Bool
         let entry: TimeEntry?
     }
     
@@ -29,6 +33,19 @@ struct CalendarView: View {
     
     var monthString: String {
         String(format: "%04d-%02d", year, month)
+    }
+    
+    var todayIsoString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
+    }
+    
+    var todayFormattedString: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: "de_DE")
+        formatter.dateFormat = "EEE. dd. MMM"
+        return formatter.string(from: Date())
     }
     
     let monthNames = ["Januar", "Februar", "März", "April", "Mai", "Juni",
@@ -51,6 +68,7 @@ struct CalendarView: View {
         
         let entries = timeVM.getFilteredEntries(for: activeUserId, month: monthString)
         let entriesDict = Dictionary(uniqueKeysWithValues: entries.map { ($0.date, $0) })
+        let todayStr = todayIsoString
         
         var result: [DayInfo] = []
         for day in range {
@@ -71,25 +89,39 @@ struct CalendarView: View {
                 dayNumber: day,
                 formattedDate: formatted,
                 isWeekend: isWeekend,
+                isToday: (dateIso == todayStr),
                 entry: entriesDict[dateIso]
             ))
         }
         return result
     }
     
-    var totalHoursForMonth: Double {
+    var monthlyEntries: [TimeEntry] {
         timeVM.getFilteredEntries(for: activeUserId, month: monthString)
-            .reduce(0.0) { $0 + $1.decimalHours }
+    }
+    
+    var totalHoursForMonth: Double {
+        monthlyEntries.reduce(0.0) { $0 + $1.decimalHours }
+    }
+    
+    var totalFuelForMonth: Double {
+        monthlyEntries.reduce(0.0) { $0 + $1.fuelExpenses }
+    }
+    
+    var totalExpensesForMonth: Double {
+        monthlyEntries.reduce(0.0) { $0 + $1.expenses }
     }
     
     var body: some View {
         VStack(spacing: 0) {
-            // Month Stepper Header
-            HStack {
+            
+            // MARK: - Modern Month Navigator Bar
+            HStack(spacing: 12) {
                 Button(action: prevMonth) {
                     Image(systemName: "chevron.left")
-                        .font(.headline)
-                        .padding(8)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.primary)
+                        .padding(10)
                         .background(Color.fieldBackground)
                         .clipShape(Circle())
                 }
@@ -97,21 +129,31 @@ struct CalendarView: View {
                 Spacer()
                 
                 VStack(spacing: 2) {
-                    Text("Arbeitszeiterfassung")
-                        .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.blue)
-                        .textCase(.uppercase)
                     Text("\(monthNames[month - 1]) \(String(year))")
-                        .font(.title3)
-                        .fontWeight(.heavy)
+                        .font(.system(size: 20, weight: .heavy, design: .rounded))
+                        .foregroundColor(.primary)
                 }
                 
                 Spacer()
                 
+                // Schnell-Sprung zu "Heute"
+                if !isCurrentMonthDisplayed {
+                    Button(action: jumpToToday) {
+                        Text("Heute")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(.blue)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 6)
+                            .background(Color.blue.opacity(0.12))
+                            .clipShape(Capsule())
+                    }
+                }
+                
                 Button(action: nextMonth) {
                     Image(systemName: "chevron.right")
-                        .font(.headline)
-                        .padding(8)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.primary)
+                        .padding(10)
                         .background(Color.fieldBackground)
                         .clipShape(Circle())
                 }
@@ -120,97 +162,180 @@ struct CalendarView: View {
             .padding(.vertical, 12)
             .background(Color.cardBackground)
             
-            // Monthly Summary Pills
-            HStack(spacing: 12) {
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
+            // MARK: - Kompakte KPI Monats-Karten
+            HStack(spacing: 10) {
+                // Stunden
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Color.blue.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                        .overlay(Image(systemName: "clock.fill").foregroundColor(.blue).font(.system(size: 16)))
+                    
+                    VStack(alignment: .leading, spacing: 1) {
                         Text("Monatsstunden")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.secondary)
                         Text("\(TimeCalculations.formatHours(totalHoursForMonth)) Std.")
-                            .font(.headline)
-                            .fontWeight(.black)
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .foregroundColor(.primary)
                     }
-                    Spacer()
                 }
-                .padding(12)
-                .background(Color.blue.opacity(0.08))
-                .cornerRadius(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(Color.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
                 
-                HStack {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Erfasste Tage")
+                // Tage & Auslagen
+                HStack(spacing: 10) {
+                    Circle()
+                        .fill(Color.green.opacity(0.15))
+                        .frame(width: 36, height: 36)
+                        .overlay(Image(systemName: "calendar.badge.checkmark").foregroundColor(.green).font(.system(size: 16)))
+                    
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("Arbeitstage")
                             .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(.green)
-                        Text("\(timeVM.getFilteredEntries(for: activeUserId, month: monthString).count) Tage")
-                            .font(.headline)
-                            .fontWeight(.black)
+                            .foregroundColor(.secondary)
+                        Text("\(monthlyEntries.count) Tage")
+                            .font(.system(size: 16, weight: .black, design: .rounded))
+                            .foregroundColor(.primary)
                     }
-                    Spacer()
                 }
-                .padding(12)
-                .background(Color.green.opacity(0.08))
-                .cornerRadius(16)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(10)
+                .background(Color.cardBackground)
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+            .padding(.vertical, 8)
             
-            // Days List
+            // Auslagen-Banner falls vorhanden
+            if totalFuelForMonth > 0 || totalExpensesForMonth > 0 {
+                HStack(spacing: 14) {
+                    if totalFuelForMonth > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "fuelpump.fill")
+                                .foregroundColor(.orange)
+                                .font(.caption)
+                            Text("Benzin: \(TimeCalculations.formatCurrency(totalFuelForMonth))")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                        }
+                    }
+                    if totalExpensesForMonth > 0 {
+                        HStack(spacing: 4) {
+                            Image(systemName: "banknote.fill")
+                                .foregroundColor(.green)
+                                .font(.caption)
+                            Text("Auslagen: \(TimeCalculations.formatCurrency(totalExpensesForMonth))")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                        }
+                    }
+                    Spacer()
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 6)
+            }
+            
+            // MARK: - Aufgeräumte Tages-Liste
             List {
                 ForEach(daysForMonth) { day in
-                    Button(action: { selectedDayInfo = day }) {
-                        HStack(spacing: 14) {
-                            // Date badge
-                            VStack(spacing: 1) {
+                    Button(action: {
+                        #if canImport(UIKit)
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                        #endif
+                        selectedDayInfo = day
+                    }) {
+                        HStack(spacing: 12) {
+                            
+                            // Datums-Badge (Heute wird blau hervorgehoben!)
+                            VStack(spacing: 2) {
                                 Text(day.dayOfWeek)
                                     .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(day.entry != nil ? .blue : (day.isWeekend ? .secondary : .primary))
+                                    .foregroundColor(day.isToday ? .white : (day.entry != nil ? .blue : (day.isWeekend ? .secondary : .primary)))
+                                
                                 Text(String(format: "%02d", day.dayNumber))
                                     .font(.system(size: 16, weight: .black, design: .rounded))
+                                    .foregroundColor(day.isToday ? .white : .primary)
                             }
                             .frame(width: 44, height: 44)
-                            .background(day.entry != nil ? Color.blue.opacity(0.12) : Color.fieldBackground)
-                            .cornerRadius(12)
+                            .background(
+                                day.isToday
+                                ? Color.blue
+                                : (day.entry != nil ? Color.blue.opacity(0.12) : Color.fieldBackground)
+                            )
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                    .stroke(day.isToday ? Color.blue : Color.clear, lineWidth: 2)
+                            )
                             
-                            // Day Details
+                            // Mittlerer Bereich: Arbeitszeit oder dezenter Leerzustand
                             VStack(alignment: .leading, spacing: 3) {
                                 if let e = day.entry {
-                                    Text("\(e.startTime) – \(e.endTime) Uhr")
-                                        .font(.subheadline)
-                                        .fontWeight(.bold)
-                                        .foregroundColor(.primary)
+                                    HStack(spacing: 6) {
+                                        Text("\(e.startTime) – \(e.endTime) Uhr")
+                                            .font(.subheadline)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.primary)
+                                        
+                                        if e.breakMinutes > 0 {
+                                            Text("(\(e.breakMinutes)m P.)")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                    
                                     Text(e.siteDescription)
                                         .font(.caption)
                                         .foregroundColor(.secondary)
                                         .lineLimit(1)
+                                    
+                                    // Spesen-Badges direkt am Tag
+                                    if e.fuelExpenses > 0 || e.expenses > 0 {
+                                        HStack(spacing: 6) {
+                                            if e.fuelExpenses > 0 {
+                                                Text("⛽ \(TimeCalculations.formatCurrency(e.fuelExpenses))")
+                                                    .font(.system(size: 10, weight: .bold))
+                                                    .foregroundColor(.orange)
+                                            }
+                                            if e.expenses > 0 {
+                                                Text("💶 \(TimeCalculations.formatCurrency(e.expenses))")
+                                                    .font(.system(size: 10, weight: .bold))
+                                                    .foregroundColor(.green)
+                                            }
+                                        }
+                                        .padding(.top, 1)
+                                    }
                                 } else {
-                                    Text(day.isWeekend ? "Wochenende" : "Keine Arbeitszeit erfasst")
+                                    Text(day.isWeekend ? "Wochenende" : (day.isToday ? "Heute (Noch nicht erfasst)" : "Kein Eintrag"))
                                         .font(.subheadline)
-                                        .foregroundColor(.secondary)
-                                    Text("Tippen zum Eintragen")
-                                        .font(.system(size: 11))
-                                        .foregroundColor(.blue)
+                                        .fontWeight(day.isToday ? .semibold : .regular)
+                                        .foregroundColor(day.isToday ? .blue : .secondary)
                                 }
                             }
                             
                             Spacer()
                             
-                            // Hours badge
+                            // Rechter Bereich: Stunden-Pille oder direktes Plus zum Eintragen
                             if let e = day.entry {
-                                Text("\(TimeCalculations.formatHours(e.decimalHours)) h")
-                                    .font(.caption)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.green.opacity(0.15))
+                                Text("\(TimeCalculations.formatHours(e.decimalHours)) Std.")
+                                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                                    .padding(.horizontal, 9)
+                                    .padding(.vertical, 5)
+                                    .background(Color.green.opacity(0.14))
                                     .foregroundColor(.green)
-                                    .cornerRadius(8)
+                                    .clipShape(Capsule())
                             } else {
-                                Image(systemName: "plus.circle")
-                                    .foregroundColor(.secondary)
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 22))
+                                    .foregroundColor(day.isToday ? .blue : Color.gray.opacity(0.4))
                             }
                         }
-                        .padding(.vertical, 2)
+                        .padding(.vertical, 3)
                     }
                 }
             }
@@ -219,6 +344,24 @@ struct CalendarView: View {
             #endif
         }
         .background(Color.appBackground)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button(action: {
+                    #if canImport(UIKit)
+                    UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                    #endif
+                    isShowingTodaySheet = true
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "plus")
+                        Text("Heute")
+                    }
+                    .font(.footnote)
+                    .fontWeight(.bold)
+                }
+            }
+        }
+        // Sheet beim Tippen auf einen beliebigen Tag
         .sheet(item: $selectedDayInfo) { day in
             TimeEntrySheet(
                 dateStr: day.dateStr,
@@ -227,6 +370,32 @@ struct CalendarView: View {
                 existingEntry: day.entry
             )
         }
+        // Schnell-Sheet für "Heute" oben rechts
+        .sheet(isPresented: $isShowingTodaySheet) {
+            let todayIso = todayIsoString
+            let existing = timeVM.allEntries.first(where: { $0.userId == activeUserId && $0.date == todayIso })
+            TimeEntrySheet(
+                dateStr: todayIso,
+                formattedDate: todayFormattedString,
+                userId: activeUserId,
+                existingEntry: existing
+            )
+        }
+        .onAppear {
+            syncSelectedMonth()
+        }
+    }
+    
+    var isCurrentMonthDisplayed: Bool {
+        let currentY = Calendar.current.component(.year, from: Date())
+        let currentM = Calendar.current.component(.month, from: Date())
+        return year == currentY && month == currentM
+    }
+    
+    private func jumpToToday() {
+        year = Calendar.current.component(.year, from: Date())
+        month = Calendar.current.component(.month, from: Date())
+        syncSelectedMonth()
     }
     
     private func prevMonth() {
@@ -236,7 +405,7 @@ struct CalendarView: View {
         } else {
             month -= 1
         }
-        timeVM.selectedMonth = monthString
+        syncSelectedMonth()
     }
     
     private func nextMonth() {
@@ -246,6 +415,10 @@ struct CalendarView: View {
         } else {
             month += 1
         }
+        syncSelectedMonth()
+    }
+    
+    private func syncSelectedMonth() {
         timeVM.selectedMonth = monthString
     }
 }
