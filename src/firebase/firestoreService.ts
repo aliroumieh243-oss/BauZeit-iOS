@@ -196,6 +196,29 @@ export async function getDbSettlement(userId: string, month: string): Promise<Mo
   };
 }
 
+export async function getAllDbSettlementsForMonth(month: string): Promise<MonthlySettlement[]> {
+  initLocalStorageIfNeeded();
+
+  if (isConfigured && db) {
+    try {
+      const q = query(
+        collection(db, 'monthly_settlements'),
+        where('month', '==', month)
+      );
+      const snapshot = await getDocs(q);
+      if (!snapshot.empty) {
+        return snapshot.docs.map(d => ({ id: d.id, ...d.data() } as MonthlySettlement));
+      }
+    } catch (err) {
+      console.warn('Error fetching Firestore month settlements:', err);
+    }
+  }
+
+  const raw = localStorage.getItem(SETTLEMENTS_STORAGE_KEY);
+  const list: MonthlySettlement[] = raw ? JSON.parse(raw) : INITIAL_SETTLEMENTS;
+  return list.filter(s => s.month === month);
+}
+
 export async function saveDbSettlement(settlement: MonthlySettlement): Promise<void> {
   const settlementId = settlement.id || `settlement_${settlement.userId}_${settlement.month}`;
   const finalObj = { ...settlement, id: settlementId };

@@ -117,15 +117,26 @@ class TimeTrackingViewModel: ObservableObject {
         saveData()
     }
     
-    func updateSettlement(userId: String, month: String, deposit: Double, operatingExpenses: Double, notes: String? = nil) {
+    func updateSettlement(
+        userId: String,
+        month: String,
+        deposit: Double,
+        operatingExpenses: Double,
+        customClientRate: Double? = nil,
+        customWorkerRate: Double? = nil,
+        notes: String? = nil
+    ) {
         let settlementId = "settlement_\(userId)_\(month)"
+        let existing = allSettlements.first(where: { $0.userId == userId && $0.month == month })
         let updated = MonthlySettlement(
             id: settlementId,
             userId: userId,
             month: month,
             deposit: deposit,
             operatingExpenses: operatingExpenses,
-            notes: notes
+            customClientRate: customClientRate ?? existing?.customClientRate,
+            customWorkerRate: customWorkerRate ?? existing?.customWorkerRate,
+            notes: notes ?? existing?.notes
         )
         
         if let idx = allSettlements.firstIndex(where: { $0.userId == userId && $0.month == month }) {
@@ -135,5 +146,74 @@ class TimeTrackingViewModel: ObservableObject {
         }
         
         saveData()
+    }
+    
+    // MARK: - Month Navigation Helpers
+    
+    func previousMonth() {
+        let parts = selectedMonth.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 2 else { return }
+        var year = parts[0]
+        var month = parts[1] - 1
+        if month < 1 {
+            month = 12
+            year -= 1
+        }
+        selectedMonth = String(format: "%04d-%02d", year, month)
+    }
+    
+    func nextMonth() {
+        let parts = selectedMonth.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 2 else { return }
+        var year = parts[0]
+        var month = parts[1] + 1
+        if month > 12 {
+            month = 1
+            year += 1
+        }
+        selectedMonth = String(format: "%04d-%02d", year, month)
+    }
+    
+    func formattedMonthTitle(for monthStr: String? = nil, isArabic: Bool = false) -> String {
+        let target = monthStr ?? selectedMonth
+        let parts = target.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 2 else { return target }
+        let year = parts[0]
+        let month = parts[1]
+        
+        let germanMonths = [
+            "Januar", "Februar", "März", "April", "Mai", "Juni",
+            "Juli", "August", "September", "Oktober", "November", "Dezember"
+        ]
+        let arabicMonths = [
+            "يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو",
+            "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"
+        ]
+        
+        guard month >= 1 && month <= 12 else { return target }
+        let name = isArabic ? arabicMonths[month - 1] : germanMonths[month - 1]
+        return "\(name) \(year)"
+    }
+    
+    func shortMonthLabel(for monthStr: String, isArabic: Bool = false) -> String {
+        let parts = monthStr.split(separator: "-").compactMap { Int($0) }
+        guard parts.count == 2 else { return monthStr }
+        let yearShort = String(parts[0]).suffix(2)
+        let month = parts[1]
+        let germanShort = ["Jan", "Feb", "Mär", "Apr", "Mai", "Jun", "Jul", "Aug", "Sep", "Okt", "Nov", "Dez"]
+        let arabicShort = ["يناير", "فبراير", "مارس", "أبريل", "مايو", "يونيو", "يوليو", "أغسطس", "سبتمبر", "أكتوبر", "نوفمبر", "ديسمبر"]
+        guard month >= 1 && month <= 12 else { return monthStr }
+        let name = isArabic ? arabicShort[month - 1] : germanShort[month - 1]
+        return "\(name) '\(yearShort)"
+    }
+    
+    var quickSelectableMonths: [String] {
+        let parts = selectedMonth.split(separator: "-").compactMap { Int($0) }
+        let currentYear = parts.first ?? 2026
+        var months: [String] = []
+        for m in 1...12 {
+            months.append(String(format: "%04d-%02d", currentYear, m))
+        }
+        return months
     }
 }

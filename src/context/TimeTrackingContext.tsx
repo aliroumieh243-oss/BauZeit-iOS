@@ -6,6 +6,7 @@ import {
   saveDbTimeEntry,
   deleteDbTimeEntry,
   getDbSettlement,
+  getAllDbSettlementsForMonth,
   saveDbSettlement
 } from '../firebase/firestoreService';
 import { calculateDecimalHours, calculateMonthlySettlement } from '../utils/timeCalculations';
@@ -16,12 +17,15 @@ interface TimeTrackingContextType {
   selectedWorkerId: string;
   setSelectedWorkerId: (workerId: string) => void;
   entries: TimeEntry[];
+  allMonthEntries: TimeEntry[];
   settlement: MonthlySettlement | null;
+  allMonthSettlements: MonthlySettlement[];
   calculations: MonthlyCalculations;
   isLoading: boolean;
   saveEntry: (
     data: {
       id?: string;
+      userId?: string;
       date: string;
       startTime: string;
       endTime: string;
@@ -35,7 +39,13 @@ interface TimeTrackingContextType {
     }
   ) => Promise<TimeEntry>;
   deleteEntry: (entryId: string) => Promise<void>;
-  updateSettlement: (deposit: number, operatingExpenses: number, notes?: string) => Promise<void>;
+  updateSettlement: (
+    deposit: number,
+    operatingExpenses: number,
+    customWorkerRate?: number,
+    customClientRate?: number,
+    notes?: string
+  ) => Promise<void>;
   refreshData: () => Promise<void>;
 }
 
@@ -44,11 +54,18 @@ const TimeTrackingContext = createContext<TimeTrackingContextType | undefined>(u
 export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { currentUser, isOwner, users } = useAuth();
 
-  // Default to June 2026 as in the prompt reference, or current month
-  const [selectedMonth, setSelectedMonth] = useState<string>('2026-06');
+  // Default to current month or 2026-11
+  const [selectedMonth, setSelectedMonth] = useState<string>(() => {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  });
   const [selectedWorkerId, setSelectedWorkerId] = useState<string>('');
   const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [allMonthEntries, setAllMonthEntries] = useState<TimeEntry[]>([]);
   const [settlement, setSettlement] = useState<MonthlySettlement | null>(null);
+  const [allMonthSettlements, setAllMonthSettlements] = useState<MonthlySettlement[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
   // Sync selected worker ID depending on role
@@ -56,10 +73,8 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
     if (!currentUser) return;
 
     if (!isOwner) {
-      // Member can ONLY view their own records!
       setSelectedWorkerId(currentUser.id);
     } else {
-      // Owner: default to first worker if not yet selected
       if (!selectedWorkerId || selectedWorkerId === currentUser.id) {
         const firstWorker = users.find(u => u.role === 'member');
         if (firstWorker) {
@@ -72,20 +87,27 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
   // Load entries and settlement whenever selectedMonth or selectedWorkerId changes
   const refreshData = async () => {
     const targetWorkerId = !isOwner ? currentUser?.id : selectedWorkerId;
-    if (!targetWorkerId) {
-      setEntries([]);
-      setSettlement(null);
-      return;
-    }
 
     setIsLoading(true);
     try {
-      const [fetchedEntries, fetchedSettlement] = await Promise.all([
-        getDbTimeEntries(targetWorkerId, selectedMonth),
-        getDbSettlement(targetWorkerId, selectedMonth)
+      const [allEntriesForMonth, allSettlementsForMonth] = await Promise.all([
+        getDbTimeEntries(undefined, selectedMonth),
+        getAllDbSettlementsForMonth(selectedMonth)
       ]);
-      setEntries(fetchedEntries);
-      setSettlement(fetchedSettlement);
+      setAllMonthEntries(allEntriesForMonth);
+      setAllMonthSettlements(allSettlementsForMonth);
+
+      if (!targetWorkerId) {
+        setEntries([]);
+        setSettlement(null);
+      } else {
+        const workerEntries = allEntriesForMonth.filter(e => e.userId === targetWorkerId);
+        const workerSettlement =
+          allSettlementsForMonth.find(s => s.userId === targetWorkerId && s.month === selectedMonth) ||
+          (await getDbSettlement(targetWorkerId, selectedMonth));
+        setEntries(workerEntries);
+        setSettlement(workerSettlement);
+      }
     } catch (err) {
       console.error('Error loading time tracking data:', err);
     } finally {
@@ -95,12 +117,12 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     refreshData();
-  }, [selectedMonth, selectedWorkerId, currentUser]);
+  }, [selectedMonth, selectedWorkerId, currentUser, users.length]);
 
   // Determine current active rates
   const activeWorker = users.find(u => u.id === (!isOwner ? currentUser?.id : selectedWorkerId));
-  const clientRate = settlement?.customClientRate ?? activeWorker?.clientRate ?? 35.00;
-  const workerRate = settlement?.customWorkerRate ?? activeWorker?.workerRate ?? 12.00;
+  const clientRate = settlement?.customClientRate ?? activeWorker?.clientRate ?? 35.0;
+  const workerRate = settlement?.customWorkerRate ?? activeWorker?.workerRate ?? 12.0;
 
   // Compute live calculations
   const calculations = useMemo(() => {
@@ -115,6 +137,7 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   const saveEntry = async (data: {
     id?: string;
+    userId?: string;
     date: string;
     startTime: string;
     endTime: string;
@@ -126,7 +149,7 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
     expenseNote?: string;
     photoData?: string;
   }): Promise<TimeEntry> => {
-    const workerId = !isOwner ? (currentUser?.id || '') : selectedWorkerId;
+    const workerId = data.userId || (!isOwner ? (currentUser?.id || '') : selectedWorkerId);
     const decimalHours = calculateDecimalHours(data.startTime, data.endTime, data.breakMinutes);
 
     const entryToSave: TimeEntry = {
@@ -156,7 +179,13 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
     await refreshData();
   };
 
-  const updateSettlement = async (deposit: number, operatingExpenses: number, notes?: string) => {
+  const updateSettlement = async (
+    deposit: number,
+    operatingExpenses: number,
+    customWorkerRate?: number,
+    customClientRate?: number,
+    notes?: string
+  ) => {
     const workerId = !isOwner ? (currentUser?.id || '') : selectedWorkerId;
     const updated: MonthlySettlement = {
       id: settlement?.id || `settlement_${workerId}_${selectedMonth}`,
@@ -164,11 +193,14 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
       month: selectedMonth,
       deposit: Number(deposit) || 0,
       operatingExpenses: Number(operatingExpenses) || 0,
+      customWorkerRate: customWorkerRate !== undefined ? Number(customWorkerRate) : settlement?.customWorkerRate,
+      customClientRate: customClientRate !== undefined ? Number(customClientRate) : settlement?.customClientRate,
       notes: notes !== undefined ? notes : settlement?.notes
     };
 
     await saveDbSettlement(updated);
     setSettlement(updated);
+    await refreshData();
   };
 
   return (
@@ -179,7 +211,9 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
         selectedWorkerId,
         setSelectedWorkerId,
         entries,
+        allMonthEntries,
         settlement,
+        allMonthSettlements,
         calculations,
         isLoading,
         saveEntry,
