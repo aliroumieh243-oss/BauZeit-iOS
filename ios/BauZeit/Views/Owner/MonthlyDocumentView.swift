@@ -463,6 +463,7 @@ struct MonthlyDocumentView: View {
         let hours: Double
         let workerRate: Double
         let baseWage: Double
+        let clientRate: Double
         let clientAR: Double
         let fuel: Double
         let expenses: Double
@@ -488,6 +489,7 @@ struct MonthlyDocumentView: View {
                 hours: calc.totalHours,
                 workerRate: calc.workerRate,
                 baseWage: calc.workerTotalAmount,
+                clientRate: calc.clientRate,
                 clientAR: calc.clientTotalAmount,
                 fuel: calc.totalFuelExpenses,
                 expenses: calc.totalExpenses,
@@ -505,6 +507,7 @@ struct MonthlyDocumentView: View {
             hours: rows.reduce(0.0) { $0 + $1.hours },
             workerRate: 0,
             baseWage: rows.reduce(0.0) { $0 + $1.baseWage },
+            clientRate: 0,
             clientAR: rows.reduce(0.0) { $0 + $1.clientAR },
             fuel: rows.reduce(0.0) { $0 + $1.fuel },
             expenses: rows.reduce(0.0) { $0 + $1.expenses },
