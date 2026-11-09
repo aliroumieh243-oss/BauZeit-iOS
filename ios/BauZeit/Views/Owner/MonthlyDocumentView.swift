@@ -282,6 +282,51 @@ struct MonthlyDocumentView: View {
     }
 
     @ViewBuilder
+    private var table1HeaderRow: some View {
+        HStack(spacing: 0) {
+            tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 115, align: .leading)
+            tableHeaderCell(lang.isArabic ? "أيام" : "Tage", width: 48, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 68, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "الساعة" : "Lohn/h", width: 68, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "الراتب الإجمالي" : "Gesamtlohn", width: 88, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "العميل AR/h" : "Kunden-AR/h", width: 86, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "العميل الإجمالي" : "Kunden-AR Gesamt", width: 96, align: .trailing)
+        }
+        .background(Color(red: 0.12, green: 0.23, blue: 0.54))
+    }
+
+    @ViewBuilder
+    private func table1DataRow(index: Int, row: WorkerSummaryRow) -> some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                tableDataCell(row.workerName, width: 115, align: .leading, isBold: true)
+                tableDataCell("\(row.days)", width: 48, align: .trailing)
+                tableDataCell("\(TimeCalculations.formatHours(row.hours)) h", width: 68, align: .trailing, isBold: true)
+                tableDataCell(TimeCalculations.formatCurrency(row.workerRate), width: 68, align: .trailing)
+                tableDataCell(TimeCalculations.formatCurrency(row.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
+                tableDataCell(TimeCalculations.formatCurrency(row.clientRate), width: 86, align: .trailing)
+                tableDataCell(TimeCalculations.formatCurrency(row.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
+            }
+            .background(index % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
+            Divider()
+        }
+    }
+
+    @ViewBuilder
+    private var table1TotalRow: some View {
+        HStack(spacing: 0) {
+            tableDataCell(lang.isArabic ? "المجموع" : "GESAMT", width: 115, align: .leading, isBold: true)
+            tableDataCell("\(totalSummary.days)", width: 48, align: .trailing, isBold: true)
+            tableDataCell("\(TimeCalculations.formatHours(totalSummary.hours)) h", width: 68, align: .trailing, isBold: true)
+            tableDataCell("-", width: 68, align: .trailing)
+            tableDataCell(TimeCalculations.formatCurrency(totalSummary.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
+            tableDataCell("-", width: 86, align: .trailing)
+            tableDataCell(TimeCalculations.formatCurrency(totalSummary.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
+        }
+        .background(Color.blue.opacity(0.12))
+    }
+
+    @ViewBuilder
     private var visualTable1View: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
@@ -300,41 +345,11 @@ struct MonthlyDocumentView: View {
             
             ScrollView(.horizontal, showsIndicators: true) {
                 VStack(spacing: 0) {
-                    HStack(spacing: 0) {
-                        tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 115, align: .leading)
-                        tableHeaderCell(lang.isArabic ? "أيام" : "Tage", width: 48, align: .trailing)
-                        tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 68, align: .trailing)
-                        tableHeaderCell(lang.isArabic ? "الساعة" : "Lohn/h", width: 68, align: .trailing)
-                        tableHeaderCell(lang.isArabic ? "الراتب الإجمالي" : "Gesamtlohn", width: 88, align: .trailing)
-                        tableHeaderCell(lang.isArabic ? "العميل AR/h" : "Kunden-AR/h", width: 86, align: .trailing)
-                        tableHeaderCell(lang.isArabic ? "العميل الإجمالي" : "Kunden-AR Gesamt", width: 96, align: .trailing)
-                    }
-                    .background(Color(red: 0.12, green: 0.23, blue: 0.54))
-                    
+                    table1HeaderRow
                     ForEach(Array(summaryRows.enumerated()), id: \.element.id) { index, row in
-                        HStack(spacing: 0) {
-                            tableDataCell(row.workerName, width: 115, align: .leading, isBold: true)
-                            tableDataCell("\(row.days)", width: 48, align: .trailing)
-                            tableDataCell("\(TimeCalculations.formatHours(row.hours)) h", width: 68, align: .trailing, isBold: true)
-                            tableDataCell(TimeCalculations.formatCurrency(row.workerRate), width: 68, align: .trailing)
-                            tableDataCell(TimeCalculations.formatCurrency(row.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
-                            tableDataCell(TimeCalculations.formatCurrency(row.clientRate), width: 86, align: .trailing)
-                            tableDataCell(TimeCalculations.formatCurrency(row.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
-                        }
-                        .background(index % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
-                        Divider()
+                        table1DataRow(index: index, row: row)
                     }
-                    
-                    HStack(spacing: 0) {
-                        tableDataCell(lang.isArabic ? "المجموع" : "GESAMT", width: 115, align: .leading, isBold: true)
-                        tableDataCell("\(totalSummary.days)", width: 48, align: .trailing, isBold: true)
-                        tableDataCell("\(TimeCalculations.formatHours(totalSummary.hours)) h", width: 68, align: .trailing, isBold: true)
-                        tableDataCell("-", width: 68, align: .trailing)
-                        tableDataCell(TimeCalculations.formatCurrency(totalSummary.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
-                        tableDataCell("-", width: 86, align: .trailing)
-                        tableDataCell(TimeCalculations.formatCurrency(totalSummary.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
-                    }
-                    .background(Color.blue.opacity(0.12))
+                    table1TotalRow
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 14))
                 .overlay(
@@ -343,6 +358,36 @@ struct MonthlyDocumentView: View {
                 )
                 .padding(.horizontal, 16)
             }
+        }
+    }
+
+    @ViewBuilder
+    private var table2HeaderRow: some View {
+        HStack(spacing: 0) {
+            tableHeaderCell(lang.isArabic ? "التاريخ" : "Datum", width: 86, align: .leading)
+            tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 100, align: .leading)
+            tableHeaderCell(lang.isArabic ? "الوقت" : "Uhrzeit", width: 92, align: .center)
+            tableHeaderCell(lang.isArabic ? "استراحة" : "Pause", width: 54, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 66, align: .trailing)
+            tableHeaderCell(lang.isArabic ? "الموقع / الورشة" : "Baustelle / Einsatzort", width: 190, align: .leading)
+        }
+        .background(Color(red: 0.18, green: 0.16, blue: 0.45))
+    }
+
+    @ViewBuilder
+    private func table2DataRow(index: Int, entry: TimeEntry) -> some View {
+        let wName = workers.first(where: { $0.id == entry.userId })?.displayName ?? "Mitarbeiter"
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                tableDataCell(entry.date, width: 86, align: .leading, isBold: true)
+                tableDataCell(wName, width: 100, align: .leading)
+                tableDataCell("\(entry.startTime)–\(entry.endTime)", width: 92, align: .center)
+                tableDataCell("\(entry.breakMinutes)m", width: 54, align: .trailing)
+                tableDataCell("\(TimeCalculations.formatHours(entry.decimalHours)) h", width: 66, align: .trailing, color: .blue, isBold: true)
+                tableDataCell(entry.siteDescription, width: 190, align: .leading)
+            }
+            .background(index % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
+            Divider()
         }
     }
 
@@ -372,28 +417,9 @@ struct MonthlyDocumentView: View {
             } else {
                 ScrollView(.horizontal, showsIndicators: true) {
                     VStack(spacing: 0) {
-                        HStack(spacing: 0) {
-                            tableHeaderCell(lang.isArabic ? "التاريخ" : "Datum", width: 86, align: .leading)
-                            tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 100, align: .leading)
-                            tableHeaderCell(lang.isArabic ? "الوقت" : "Uhrzeit", width: 92, align: .center)
-                            tableHeaderCell(lang.isArabic ? "استراحة" : "Pause", width: 54, align: .trailing)
-                            tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 66, align: .trailing)
-                            tableHeaderCell(lang.isArabic ? "الموقع / الورشة" : "Baustelle / Einsatzort", width: 190, align: .leading)
-                        }
-                        .background(Color(red: 0.18, green: 0.16, blue: 0.45))
-                        
+                        table2HeaderRow
                         ForEach(Array(filteredEntries.enumerated()), id: \.element.id) { idx, e in
-                            let wName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
-                            HStack(spacing: 0) {
-                                tableDataCell(e.date, width: 86, align: .leading, isBold: true)
-                                tableDataCell(wName, width: 100, align: .leading)
-                                tableDataCell("\(e.startTime)–\(e.endTime)", width: 92, align: .center)
-                                tableDataCell("\(e.breakMinutes)m", width: 54, align: .trailing)
-                                tableDataCell("\(TimeCalculations.formatHours(e.decimalHours)) h", width: 66, align: .trailing, color: .blue, isBold: true)
-                                tableDataCell(e.siteDescription, width: 190, align: .leading)
-                            }
-                            .background(idx % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
-                            Divider()
+                            table2DataRow(index: idx, entry: e)
                         }
                     }
                     .clipShape(RoundedRectangle(cornerRadius: 14))
