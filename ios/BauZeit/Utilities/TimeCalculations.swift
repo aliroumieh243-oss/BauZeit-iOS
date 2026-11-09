@@ -56,8 +56,8 @@ enum TimeCalculations {
         let totalExpenses = entries.reduce(0.0) { $0 + $1.expenses }
         let totalFuelExpenses = entries.reduce(0.0) { $0 + $1.fuelExpenses }
         
-        // Endgültige Auszahlung: Lohn + Auslagen-Erstattung + Benzingeld-Erstattung - Anzahlung
-        let netPayout = (((workerTotal + totalExpenses + totalFuelExpenses - deposit)) * 100).rounded() / 100.0
+        // Dauerhaft vereinfachte Monatsabrechnung: Rein Gesamtstunden × Stundenlohn = Gesamtlohn
+        let netPayout = workerTotal
         
         return MonthlyCalculations(
             totalHours: roundedHours,

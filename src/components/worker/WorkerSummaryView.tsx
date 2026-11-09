@@ -99,52 +99,18 @@ export const WorkerSummaryView: React.FC = () => {
           </div>
         </div>
 
-        {/* Calculation Details */}
-        <div className="space-y-2.5 text-xs text-slate-600 border-t border-slate-100 pt-3">
-          <div className="flex items-center justify-between">
-            <span className="text-slate-500 font-medium">{t('Grundlohn:')}</span>
-            <span className="font-bold text-slate-800">{formatCurrency(calculations.workerTotalAmount)}</span>
+        {/* Primary Simplified Total: Stunden × Stundenlohn = Gesamtlohn */}
+        <div className="p-4 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 text-white shadow-sm flex items-center justify-between">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wider text-emerald-100">
+              {t('Gesamtlohn für diesen Monat')}
+            </div>
+            <div className="text-xs text-emerald-100/90 mt-0.5">
+              {formatHours(calculations.totalHours)} {t('Std.')} × {formatCurrency(calculations.workerRate)}
+            </div>
           </div>
-
-          {calculations.totalFuelExpenses > 0 && (
-            <div className="flex items-center justify-between text-orange-600">
-              <span className="font-medium flex items-center gap-1">
-                <Fuel className="w-3.5 h-3.5" />
-                {t('Benzingeld-Erstattung:')}
-              </span>
-              <span className="font-bold">+ {formatCurrency(calculations.totalFuelExpenses)}</span>
-            </div>
-          )}
-
-          {calculations.totalExpenses > 0 && (
-            <div className="flex items-center justify-between text-emerald-600">
-              <span className="font-medium flex items-center gap-1">
-                <Banknote className="w-3.5 h-3.5" />
-                {t('Material / Auslagen-Erstattung:')}
-              </span>
-              <span className="font-bold">+ {formatCurrency(calculations.totalExpenses)}</span>
-            </div>
-          )}
-
-          {calculations.deposit > 0 && (
-            <div className="flex items-center justify-between">
-              <span className="text-slate-500 font-medium">{t('Bereits erhaltene Anzahlung:')}</span>
-              <span className="font-bold text-red-600">
-                - {formatCurrency(calculations.deposit)}
-              </span>
-            </div>
-          )}
-
-          <div className="mt-3 pt-3 border-t border-slate-200 flex items-center justify-between">
-            <div>
-              <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
-                {t('Endgültiger Gesamtlohn')}
-              </div>
-              <div className="text-[10px] text-slate-400">{t('Auszahlungsbetrag')}</div>
-            </div>
-            <div className="text-2xl font-black text-emerald-600 tracking-tight">
-              {formatCurrency(calculations.netPayout)}
-            </div>
+          <div className="text-2xl font-black tracking-tight">
+            {formatCurrency(calculations.workerTotalAmount)}
           </div>
         </div>
       </div>

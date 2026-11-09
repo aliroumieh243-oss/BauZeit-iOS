@@ -92,86 +92,27 @@ struct WorkerSummaryView: View {
                         .cornerRadius(16)
                     }
                     
-                    Divider()
-                    
-                    // Detaillierte Posten
-                    VStack(spacing: 10) {
-                        HStack {
-                            Text(lang.text("Grundlohn:"))
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                            Spacer()
-                            Text(TimeCalculations.formatCurrency(calculations.workerTotalAmount))
-                                .font(.footnote)
-                                .fontWeight(.bold)
+                    // Dauerhaft vereinfachte Lohnberechnung: Stunden × Stundenlohn = Gesamtlohn
+                    HStack {
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(lang.isArabic ? "إجمالي راتب هذا الشهر" : "Gesamtlohn für diesen Monat")
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.white.opacity(0.9))
+                                .textCase(.uppercase)
+                            Text("\(TimeCalculations.formatHours(calculations.totalHours)) h × \(TimeCalculations.formatCurrency(calculations.workerRate))")
+                                .font(.caption)
+                                .foregroundColor(.white.opacity(0.85))
                         }
-                        
-                        // Benzingeld Erstattung
-                        if calculations.totalFuelExpenses > 0 {
-                            HStack {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "fuelpump.fill").foregroundColor(.orange).font(.caption2)
-                                    Text(lang.text("Benzingeld-Erstattung:"))
-                                }
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                Spacer()
-                                Text("+ \(TimeCalculations.formatCurrency(calculations.totalFuelExpenses))")
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.orange)
-                            }
-                        }
-                        
-                        // Auslagen / Material Erstattung
-                        if calculations.totalExpenses > 0 {
-                            HStack {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "banknote.fill").foregroundColor(.green).font(.caption2)
-                                    Text(lang.text("Material / Auslagen-Erstattung:"))
-                                }
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                Spacer()
-                                Text("+ \(TimeCalculations.formatCurrency(calculations.totalExpenses))")
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.green)
-                            }
-                        }
-                        
-                        // Anzahlung
-                        if calculations.deposit > 0 {
-                            HStack {
-                                Text(lang.text("Bereits erhaltene Anzahlung:"))
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text("- \(TimeCalculations.formatCurrency(calculations.deposit))")
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(.red)
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        HStack {
-                            VStack(alignment: .leading, spacing: 1) {
-                                Text(lang.text("Endgültiger Gesamtlohn"))
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                Text(lang.text("Auszahlungsbetrag"))
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                            Spacer()
-                            Text(TimeCalculations.formatCurrency(calculations.netPayout))
-                                .font(.title)
-                                .fontWeight(.black)
-                                .foregroundColor(.green)
-                        }
+                        Spacer()
+                        Text(TimeCalculations.formatCurrency(calculations.workerTotalAmount))
+                            .font(.title2)
+                            .fontWeight(.black)
+                            .foregroundColor(.white)
                     }
+                    .padding(16)
+                    .background(LinearGradient(colors: [Color.green, Color.teal], startPoint: .leading, endPoint: .trailing))
+                    .cornerRadius(16)
+                    .shadow(color: Color.green.opacity(0.25), radius: 6, y: 3)
                 }
                 .padding(18)
                 .background(Color.cardBackground)

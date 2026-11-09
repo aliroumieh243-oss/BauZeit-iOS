@@ -119,13 +119,13 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
       {isEditing && (
         <div className="my-3 p-3.5 rounded-2xl bg-blue-50/60 border border-blue-200/80 space-y-2.5 text-xs">
           <div className="font-bold text-blue-900 text-[11px] uppercase tracking-wider">
-            Alle Werte der Monatsabrechnung bearbeiten:
+            Stundensätze der Monatsabrechnung anpassen:
           </div>
 
           <div className="grid grid-cols-2 gap-2.5">
             <div>
               <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                Mitarbeiter-Lohn (€/h)
+                Mitarbeiter-Stundenlohn (€/h)
               </label>
               <input
                 type="text"
@@ -146,30 +146,6 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
                 className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900"
               />
             </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                Anzahlung / Vorschuss (€)
-              </label>
-              <input
-                type="text"
-                value={depositInput}
-                onChange={e => setDepositInput(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-white border border-amber-300 rounded-xl font-bold text-amber-900"
-              />
-            </div>
-
-            <div>
-              <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-                Betriebskosten (€)
-              </label>
-              <input
-                type="text"
-                value={operatingInput}
-                onChange={e => setOperatingInput(e.target.value)}
-                className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl font-bold text-slate-900"
-              />
-            </div>
           </div>
 
           <div>
@@ -180,7 +156,7 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
               type="text"
               value={notesInput}
               onChange={e => setNotesInput(e.target.value)}
-              placeholder="z.B. Bar ausgezahlt am Monatsende..."
+              placeholder="z.B. Lohn für Juni vollständig..."
               className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-xl text-slate-900"
             />
           </div>
@@ -189,6 +165,22 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
 
       {/* Primary Highlights: AR Total vs Worker Payout */}
       <div className="grid grid-cols-2 gap-3 my-4">
+        {/* Mitarbeiter Lohn (Auszahlungsbasis) */}
+        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200/70">
+          <div className="flex items-center justify-between text-emerald-700 mb-1">
+            <span className="text-[11px] font-bold uppercase tracking-wider">{t('Gesamtlohn')}</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-semibold">
+              {formatCurrency(calculations.workerRate)}/h
+            </span>
+          </div>
+          <div className="text-xl font-black text-emerald-900 tracking-tight">
+            {formatCurrency(calculations.workerTotalAmount)}
+          </div>
+          <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
+            {formatHours(calculations.totalHours)} h × {formatCurrency(calculations.workerRate)}
+          </div>
+        </div>
+
         {/* Mitarbeiter AR (Kundenverrechnung / Abrechnung) */}
         <div className="p-3.5 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50/50 border border-blue-200/70">
           <div className="flex items-center justify-between text-blue-700 mb-1">
@@ -201,66 +193,21 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
             {formatCurrency(calculations.clientTotalAmount)}
           </div>
           <div className="text-[11px] text-blue-600 font-medium mt-0.5">
-            {formatHours(calculations.totalHours)} h ({entryCount} Tage)
-          </div>
-        </div>
-
-        {/* Mitarbeiter Lohn (Auszahlungsbasis) */}
-        <div className="p-3.5 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50/50 border border-emerald-200/70">
-          <div className="flex items-center justify-between text-emerald-700 mb-1">
-            <span className="text-[11px] font-bold uppercase tracking-wider">{t('Mitarbeiter-Lohn')}</span>
-            <span className="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded-md font-semibold">
-              {formatCurrency(calculations.workerRate)}/h
-            </span>
-          </div>
-          <div className="text-xl font-black text-emerald-900 tracking-tight">
-            {formatCurrency(calculations.workerTotalAmount)}
-          </div>
-          <div className="text-[11px] text-emerald-600 font-medium mt-0.5">
-            {t('Grundlohn:')} vor Spesen
+            {formatHours(calculations.totalHours)} h × {formatCurrency(calculations.clientRate)}
           </div>
         </div>
       </div>
 
-      {/* Detailed Breakdown */}
+      {/* Simplified Breakdown */}
       <div className="space-y-2.5 text-xs text-slate-600 pt-1">
         <div className="flex items-center justify-between py-1 border-b border-slate-50">
           <span className="text-slate-500 font-medium">{t('Geleistete Monatsstunden:')}</span>
           <span className="font-bold text-slate-800">{formatHours(calculations.totalHours)} Stunden ({entryCount} Tage)</span>
         </div>
 
-        {/* Benzingeld Erstattung */}
-        <div className="flex items-center justify-between py-1 border-b border-slate-50 text-orange-600">
-          <span className="font-medium flex items-center gap-1">
-            <Fuel className="w-3.5 h-3.5" />
-            {t('Erstattung Benzingeld:')}
-          </span>
-          <span className="font-bold">+ {formatCurrency(calculations.totalFuelExpenses)}</span>
-        </div>
-
-        {/* Auslagen Erstattung */}
-        <div className="flex items-center justify-between py-1 border-b border-slate-50 text-emerald-600">
-          <span className="font-medium flex items-center gap-1">
-            <Banknote className="w-3.5 h-3.5" />
-            {t('Erstattung Material / Auslagen:')}
-          </span>
-          <span className="font-bold">+ {formatCurrency(calculations.totalExpenses)}</span>
-        </div>
-
-        {/* Anzahlung field */}
         <div className="flex items-center justify-between py-1 border-b border-slate-50">
-          <span className="text-slate-500 font-medium">{t('Geleistete Anzahlung (Abzug):')}</span>
-          <span className="font-bold text-red-600">
-            - {formatCurrency(calculations.deposit)}
-          </span>
-        </div>
-
-        {/* Jasin Betriebskosten */}
-        <div className="flex items-center justify-between py-1 border-b border-slate-50">
-          <span className="text-slate-500 font-medium">{t('Jasin Betriebskosten:')}</span>
-          <span className="font-bold text-slate-700">
-            {formatCurrency(calculations.operatingExpenses)}
-          </span>
+          <span className="text-slate-500 font-medium">{t('Dein Stundenlohn')}:</span>
+          <span className="font-bold text-emerald-700">{formatCurrency(calculations.workerRate)} pro Stunde</span>
         </div>
 
         {settlement?.notes && (
@@ -270,19 +217,19 @@ export const FinancialSummaryCard: React.FC<FinancialSummaryCardProps> = ({
           </div>
         )}
 
-        {/* Final Net Wage */}
+        {/* Final Pure Wage */}
         <div className="mt-3 pt-3 border-t-2 border-slate-200 flex items-center justify-between">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-slate-900">
-              {t('Endgültiger Gesamtlohn')}
+              {t('Gesamtlohn für diesen Monat')}
             </div>
             <div className="text-[11px] text-slate-500">
-              {t('Inkl. Spesen & nach Anzahlung')}
+              {formatHours(calculations.totalHours)} Std. × {formatCurrency(calculations.workerRate)}
             </div>
           </div>
           <div className="text-right">
             <div className="text-2xl font-black text-emerald-600 tracking-tight">
-              {formatCurrency(calculations.netPayout)}
+              {formatCurrency(calculations.workerTotalAmount)}
             </div>
           </div>
         </div>

@@ -507,14 +507,6 @@ struct OwnerDashboardView: View {
                                     text: $clientRateText
                                 )
                                 editFieldRow(
-                                    label: lang.isArabic ? "السلفة المدفوعة (€):" : "Geleistete Anzahlung / Vorschuss (€):",
-                                    text: $depositText
-                                )
-                                editFieldRow(
-                                    label: lang.isArabic ? "مصاريف التشغيل (€):" : "Jasin Betriebskosten / Abzüge (€):",
-                                    text: $operatingText
-                                )
-                                editFieldRow(
                                     label: lang.isArabic ? "ملاحظة المحاسبة:" : "Abrechnungs-Notiz:",
                                     text: $settlementNotesText,
                                     isNumeric: false
@@ -584,7 +576,7 @@ struct OwnerDashboardView: View {
                             .cornerRadius(14)
                         }
                         
-                        // Aufschlüsselung inklusive Benzin, Auslagen, Anzahlung, Betriebskosten
+                        // Dauerhaft vereinfachte Aufschlüsselung: Rein Stundenlohn & Gesamtlohn
                         VStack(spacing: 8) {
                             HStack {
                                 Text(lang.text("Geleistete Monatsstunden:"))
@@ -597,52 +589,14 @@ struct OwnerDashboardView: View {
                             }
                             
                             HStack {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "fuelpump.fill").foregroundColor(.orange).font(.caption2)
-                                    Text(lang.text("Erstattung Benzingeld:"))
-                                }
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                Spacer()
-                                Text("+ \(TimeCalculations.formatCurrency(calculations.totalFuelExpenses))")
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(calculations.totalFuelExpenses > 0 ? .orange : .secondary)
-                            }
-                            
-                            HStack {
-                                HStack(spacing: 4) {
-                                    Image(systemName: "banknote.fill").foregroundColor(.green).font(.caption2)
-                                    Text(lang.text("Erstattung Material / Auslagen:"))
-                                }
-                                .font(.footnote)
-                                .foregroundColor(.secondary)
-                                Spacer()
-                                Text("+ \(TimeCalculations.formatCurrency(calculations.totalExpenses))")
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
-                                    .foregroundColor(calculations.totalExpenses > 0 ? .green : .secondary)
-                            }
-                            
-                            HStack {
-                                Text(lang.text("Geleistete Anzahlung (Abzug):"))
+                                Text(lang.isArabic ? "أجر الساعة:" : "Stundenlohn:")
                                     .font(.footnote)
                                     .foregroundColor(.secondary)
                                 Spacer()
-                                Text("- \(TimeCalculations.formatCurrency(calculations.deposit))")
+                                Text("\(TimeCalculations.formatCurrency(calculations.workerRate)) / h")
                                     .font(.footnote)
                                     .fontWeight(.bold)
-                                    .foregroundColor(.red)
-                            }
-                            
-                            HStack {
-                                Text(lang.text("Jasin Betriebskosten:"))
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                Spacer()
-                                Text(TimeCalculations.formatCurrency(calculations.operatingExpenses))
-                                    .font(.footnote)
-                                    .fontWeight(.bold)
+                                    .foregroundColor(.green)
                             }
                             
                             if let note = currentSettlement?.notes, !note.isEmpty {
@@ -661,15 +615,15 @@ struct OwnerDashboardView: View {
                             
                             HStack {
                                 VStack(alignment: .leading, spacing: 1) {
-                                    Text(lang.text("Endgültiger Gesamtlohn"))
+                                    Text(lang.isArabic ? "إجمالي راتب هذا الشهر" : "Gesamtlohn für diesen Monat")
                                         .font(.footnote)
                                         .fontWeight(.bold)
-                                    Text(lang.text("Inkl. Spesen & nach Anzahlung"))
+                                    Text("\(TimeCalculations.formatHours(calculations.totalHours)) Std. × \(TimeCalculations.formatCurrency(calculations.workerRate))")
                                         .font(.system(size: 10))
                                         .foregroundColor(.secondary)
                                 }
                                 Spacer()
-                                Text(TimeCalculations.formatCurrency(calculations.netPayout))
+                                Text(TimeCalculations.formatCurrency(calculations.workerTotalAmount))
                                     .font(.title2)
                                     .fontWeight(.black)
                                     .foregroundColor(.green)

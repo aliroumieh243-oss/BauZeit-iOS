@@ -28,17 +28,12 @@ struct AIDocumentGenerator {
         
         // Block 1: Zusammenfassung je Mitarbeiter
         lines.append("TABELLE 1: MONATSABRECHNUNG JE MITARBEITER")
-        lines.append("Mitarbeiter\tTage\tStunden (h)\tLohn/h (€)\tGrundlohn (€)\tKunden-AR/h (€)\tKunden-AR Gesamt (€)\tBenzin (€)\tAuslagen (€)\tAnzahlung (€)\tBetriebskosten (€)\tEndgültige Auszahlung (€)\tNotiz")
+        lines.append("Mitarbeiter\tTage\tStunden (h)\tStundenlohn (€/h)\tGesamtlohn (€)\tKunden-AR/h (€)\tKunden-AR Gesamt (€)\tNotiz")
         
         var totalDays: Int = 0
         var totalAllHours: Double = 0.0
         var totalAllBaseWage: Double = 0.0
         var totalAllClientAR: Double = 0.0
-        var totalAllFuel: Double = 0.0
-        var totalAllExpenses: Double = 0.0
-        var totalAllDeposit: Double = 0.0
-        var totalAllOperating: Double = 0.0
-        var totalAllPayout: Double = 0.0
         
         for w in targetWorkers {
             let workerEntries = entries.filter { $0.userId == w.id && $0.date.hasPrefix(month) }
@@ -55,23 +50,18 @@ struct AIDocumentGenerator {
             totalAllHours += calc.totalHours
             totalAllBaseWage += calc.workerTotalAmount
             totalAllClientAR += calc.clientTotalAmount
-            totalAllFuel += calc.totalFuelExpenses
-            totalAllExpenses += calc.totalExpenses
-            totalAllDeposit += calc.deposit
-            totalAllOperating += calc.operatingExpenses
-            totalAllPayout += calc.netPayout
             
             let sNote = (settlement?.notes ?? "-").replacingOccurrences(of: "\t", with: " ")
             
-            lines.append("\(w.displayName)\t\(workerEntries.count)\t\(TimeCalculations.formatHours(calc.totalHours))\t\(String(format: "%.2f", calc.workerRate))\t\(String(format: "%.2f", calc.workerTotalAmount))\t\(String(format: "%.2f", calc.clientRate))\t\(String(format: "%.2f", calc.clientTotalAmount))\t\(String(format: "%.2f", calc.totalFuelExpenses))\t\(String(format: "%.2f", calc.totalExpenses))\t\(String(format: "%.2f", calc.deposit))\t\(String(format: "%.2f", calc.operatingExpenses))\t\(String(format: "%.2f", calc.netPayout))\t\(sNote)")
+            lines.append("\(w.displayName)\t\(workerEntries.count)\t\(TimeCalculations.formatHours(calc.totalHours))\t\(String(format: "%.2f", calc.workerRate))\t\(String(format: "%.2f", calc.workerTotalAmount))\t\(String(format: "%.2f", calc.clientRate))\t\(String(format: "%.2f", calc.clientTotalAmount))\t\(sNote)")
         }
         
-        lines.append("GESAMT\t\(totalDays)\t\(TimeCalculations.formatHours(totalAllHours))\t-\t\(String(format: "%.2f", totalAllBaseWage))\t-\t\(String(format: "%.2f", totalAllClientAR))\t\(String(format: "%.2f", totalAllFuel))\t\(String(format: "%.2f", totalAllExpenses))\t\(String(format: "%.2f", totalAllDeposit))\t\(String(format: "%.2f", totalAllOperating))\t\(String(format: "%.2f", totalAllPayout))\t-")
+        lines.append("GESAMT\t\(totalDays)\t\(TimeCalculations.formatHours(totalAllHours))\t-\t\(String(format: "%.2f", totalAllBaseWage))\t-\t\(String(format: "%.2f", totalAllClientAR))\t-")
         lines.append("")
         
         // Block 2: Detaillierte Tage-Tabelle für die Buchhaltung
         lines.append("TABELLE 2: EINZELAUFSTELLUNG ALLER TAGE & EINSÄTZE")
-        lines.append("Datum\tMitarbeiter\tBeginn\tEnde\tPause (Min)\tStunden (h)\tBaustelle / Einsatzort\tBenzin (€)\tAuslagen (€)\tBeleg\tNotiz")
+        lines.append("Datum\tMitarbeiter\tBeginn\tEnde\tPause (Min)\tStunden (h)\tBaustelle / Einsatzort\tNotiz")
         
         let allowedIds = Set(targetWorkers.map { $0.id })
         let sortedEntries = entries
@@ -80,12 +70,9 @@ struct AIDocumentGenerator {
         
         for e in sortedEntries {
             let workerName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
-            let fuelStr = String(format: "%.2f", e.fuelExpenses)
-            let expStr = String(format: "%.2f", e.expenses)
-            let receiptStr = (e.photoData != nil && !e.photoData!.isEmpty) ? "Ja (Foto)" : "-"
             let note = (e.expenseNote ?? e.notes ?? "-").replacingOccurrences(of: "\t", with: " ")
             
-            lines.append("\(e.date)\t\(workerName)\t\(e.startTime)\t\(e.endTime)\t\(e.breakMinutes)\t\(TimeCalculations.formatHours(e.decimalHours))\t\(e.siteDescription)\t\(fuelStr)\t\(expStr)\t\(receiptStr)\t\(note)")
+            lines.append("\(e.date)\t\(workerName)\t\(e.startTime)\t\(e.endTime)\t\(e.breakMinutes)\t\(TimeCalculations.formatHours(e.decimalHours))\t\(e.siteDescription)\t\(note)")
         }
         
         return lines.joined(separator: "\n")
@@ -130,22 +117,17 @@ struct AIDocumentGenerator {
         <h1>BAUZEIT • MONATSABRECHNUNG (\(month))</h1>
         <p>Erstellt am: \(DateFormatter.localizedString(from: Date(), dateStyle: .medium, timeStyle: .short))</p>
         
-        <h2>1. Monatsabrechnung & Lohnübersicht</h2>
+        <h2>1. Monatsabrechnung & Lohnübersicht (Stunden × Stundenlohn)</h2>
         <table>
             <thead>
                 <tr>
                     <th>Mitarbeiter</th>
                     <th class="num">Einsatztage</th>
                     <th class="num">Stunden (h)</th>
-                    <th class="num">Lohn/h (€)</th>
-                    <th class="num">Grundlohn (€)</th>
+                    <th class="num">Stundenlohn (€/h)</th>
+                    <th class="num">Gesamtlohn (€)</th>
                     <th class="num">Kunden-AR/h (€)</th>
-                    <th class="num">Kunden-AR (€)</th>
-                    <th class="num">Benzingeld (€)</th>
-                    <th class="num">Auslagen (€)</th>
-                    <th class="num">Anzahlung (€)</th>
-                    <th class="num">Betriebskosten (€)</th>
-                    <th class="num">Auszahlung Netto (€)</th>
+                    <th class="num">Kunden-AR Gesamt (€)</th>
                     <th>Notiz</th>
                 </tr>
             </thead>
@@ -156,11 +138,6 @@ struct AIDocumentGenerator {
         var totalHours = 0.0
         var totalBase = 0.0
         var totalAR = 0.0
-        var totalFuel = 0.0
-        var totalExp = 0.0
-        var totalDep = 0.0
-        var totalOp = 0.0
-        var totalNet = 0.0
         
         for w in targetWorkers {
             let wEntries = entries.filter { $0.userId == w.id && $0.date.hasPrefix(month) }
@@ -177,11 +154,6 @@ struct AIDocumentGenerator {
             totalHours += calc.totalHours
             totalBase += calc.workerTotalAmount
             totalAR += calc.clientTotalAmount
-            totalFuel += calc.totalFuelExpenses
-            totalExp += calc.totalExpenses
-            totalDep += calc.deposit
-            totalOp += calc.operatingExpenses
-            totalNet += calc.netPayout
             
             let noteStr = settlement?.notes ?? "-"
             
@@ -191,14 +163,9 @@ struct AIDocumentGenerator {
                     <td class="num">\(wEntries.count)</td>
                     <td class="num">\(TimeCalculations.formatHours(calc.totalHours))</td>
                     <td class="num">\(TimeCalculations.formatCurrency(calc.workerRate))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(calc.workerTotalAmount))</td>
+                    <td class="num payout">\(TimeCalculations.formatCurrency(calc.workerTotalAmount))</td>
                     <td class="num">\(TimeCalculations.formatCurrency(calc.clientRate))</td>
                     <td class="num ar-col">\(TimeCalculations.formatCurrency(calc.clientTotalAmount))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(calc.totalFuelExpenses))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(calc.totalExpenses))</td>
-                    <td class="num deduct">- \(TimeCalculations.formatCurrency(calc.deposit))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(calc.operatingExpenses))</td>
-                    <td class="num payout">\(TimeCalculations.formatCurrency(calc.netPayout))</td>
                     <td>\(noteStr)</td>
                 </tr>
             """
@@ -210,14 +177,9 @@ struct AIDocumentGenerator {
                     <td class="num">\(totalDays)</td>
                     <td class="num">\(TimeCalculations.formatHours(totalHours))</td>
                     <td class="num">-</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalBase))</td>
+                    <td class="num payout">\(TimeCalculations.formatCurrency(totalBase))</td>
                     <td class="num">-</td>
                     <td class="num ar-col">\(TimeCalculations.formatCurrency(totalAR))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalFuel))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalExp))</td>
-                    <td class="num deduct">- \(TimeCalculations.formatCurrency(totalDep))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalOp))</td>
-                    <td class="num payout">\(TimeCalculations.formatCurrency(totalNet))</td>
                     <td>-</td>
                 </tr>
             </tbody>
@@ -234,9 +196,6 @@ struct AIDocumentGenerator {
                     <th class="num">Pause (Min)</th>
                     <th class="num">Stunden (h)</th>
                     <th>Baustelle / Einsatzort</th>
-                    <th class="num">Benzin (€)</th>
-                    <th class="num">Auslagen (€)</th>
-                    <th>Beleg</th>
                     <th>Notiz</th>
                 </tr>
             </thead>
@@ -250,7 +209,6 @@ struct AIDocumentGenerator {
         
         for e in sortedEntries {
             let workerName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
-            let receiptStr = (e.photoData != nil && !e.photoData!.isEmpty) ? "Ja (Foto)" : "-"
             let note = e.expenseNote ?? e.notes ?? "-"
             
             html += """
@@ -262,9 +220,6 @@ struct AIDocumentGenerator {
                     <td class="num">\(e.breakMinutes)</td>
                     <td class="num"><strong>\(TimeCalculations.formatHours(e.decimalHours))</strong></td>
                     <td>\(e.siteDescription)</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(e.fuelExpenses))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(e.expenses))</td>
-                    <td>\(receiptStr)</td>
                     <td>\(note)</td>
                 </tr>
             """
@@ -275,9 +230,7 @@ struct AIDocumentGenerator {
                     <td colspan="5">SUMME (\(sortedEntries.count) Einsätze)</td>
                     <td class="num">\(TimeCalculations.formatHours(totalHours)) h</td>
                     <td>-</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalFuel))</td>
-                    <td class="num">\(TimeCalculations.formatCurrency(totalExp))</td>
-                    <td colspan="2">-</td>
+                    <td>-</td>
                 </tr>
             </tbody>
         </table>

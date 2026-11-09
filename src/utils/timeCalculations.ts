@@ -123,10 +123,10 @@ export function getDaysForMonth(yearMonth: string, entries: TimeEntry[] = []): D
 
 /**
  * Calculates complete monthly financial numbers matching the user's specification:
- * - Mitarbeiter AR: totalHours * clientRate (e.g. 77.50 * 35 € = 2,712.50 €)
+ * - Dauerhaft vereinfacht: Rein Stundenlohn und Gesamtlohn (Stunden × Stundenlohn)
  * - Mitarbeiter: totalHours * workerRate (e.g. 77.50 * 12 € = 930.00 €)
- * - Anzahlung: e.g. 208.50 €
- * - Endgültiger Gesamtlohn: Mitarbeiter sum - Anzahlung = 721.50 €
+ * - Kunden-AR: totalHours * clientRate (e.g. 77.50 * 35 € = 2,712.50 €)
+ * - Gesamtlohn = workerTotalAmount (e.g. 930.00 €)
  */
 export function calculateMonthlySettlement(
   entries: TimeEntry[],
@@ -144,8 +144,8 @@ export function calculateMonthlySettlement(
   const totalExpenses = entries.reduce((sum, e) => sum + (e.expenses || 0), 0);
   const totalFuelExpenses = entries.reduce((sum, e) => sum + (e.fuelExpenses || 0), 0);
 
-  // Net payout = worker wages + expenses reimbursement + fuel reimbursement - deposit
-  const netPayout = Math.round((workerTotalAmount + totalExpenses + totalFuelExpenses - deposit) * 100) / 100;
+  // Dauerhaft vereinfachte Monatsabrechnung: Rein Stunden × Stundenlohn = Gesamtlohn
+  const netPayout = workerTotalAmount;
 
   return {
     totalHours: roundedHours,

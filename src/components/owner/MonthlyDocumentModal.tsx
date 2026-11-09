@@ -93,34 +93,31 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
 
     lines.push('TABELLE 1: MONATSABRECHNUNG JE MITARBEITER');
     lines.push(
-      'Mitarbeiter\tTage\tStunden (h)\tLohn/h (€)\tGrundlohn (€)\tKunden-AR/h (€)\tKunden-AR (€)\tBenzin (€)\tAuslagen (€)\tAnzahlung (€)\tBetriebskosten (€)\tAuszahlung Netto (€)\tNotiz'
+      'Mitarbeiter\tTage\tStunden (h)\tStundenlohn (€/h)\tGesamtlohn (€)\tKunden-AR/h (€)\tKunden-AR Gesamt (€)\tNotiz'
     );
 
     summaryRows.forEach(r => {
       lines.push(
-        `${r.worker.displayName}\t${r.days}\t${formatHours(r.hours)}\t${r.workerRate.toFixed(2)}\t${r.baseWages.toFixed(2)}\t${r.clientRate.toFixed(2)}\t${r.clientAR.toFixed(2)}\t${r.fuel.toFixed(2)}\t${r.expenses.toFixed(2)}\t${r.deposit.toFixed(2)}\t${r.operating.toFixed(2)}\t${r.netPayout.toFixed(2)}\t${r.notes}`
+        `${r.worker.displayName}\t${r.days}\t${formatHours(r.hours)}\t${r.workerRate.toFixed(2)}\t${r.baseWages.toFixed(2)}\t${r.clientRate.toFixed(2)}\t${r.clientAR.toFixed(2)}\t${r.notes}`
       );
     });
 
     lines.push(
-      `GESAMT\t${totals.days}\t${formatHours(totals.hours)}\t-\t${totals.baseWages.toFixed(2)}\t-\t${totals.clientAR.toFixed(2)}\t${totals.fuel.toFixed(2)}\t${totals.expenses.toFixed(2)}\t${totals.deposit.toFixed(2)}\t${totals.operating.toFixed(2)}\t${totals.netPayout.toFixed(2)}\t-`
+      `GESAMT\t${totals.days}\t${formatHours(totals.hours)}\t-\t${totals.baseWages.toFixed(2)}\t-\t${totals.clientAR.toFixed(2)}\t-`
     );
     lines.push('');
 
     lines.push('TABELLE 2: EINZELAUFSTELLUNG ALLER TAGE & EINSÄTZE');
     lines.push(
-      'Datum\tMitarbeiter\tBeginn\tEnde\tPause (Min)\tStunden\tBaustelle / Einsatzort\tBenzin (€)\tAuslagen (€)\tBeleg\tNotiz'
+      'Datum\tMitarbeiter\tBeginn\tEnde\tPause (Min)\tStunden\tBaustelle / Einsatzort\tNotiz'
     );
 
     sortedEntries.forEach(e => {
       const wName = workers.find(w => w.id === e.userId)?.displayName || 'Mitarbeiter';
-      const fuelStr = e.fuelExpenses && e.fuelExpenses > 0 ? e.fuelExpenses.toFixed(2) : '0.00';
-      const expStr = e.expenses && e.expenses > 0 ? e.expenses.toFixed(2) : '0.00';
-      const receiptStr = e.photoData ? 'Ja (Foto)' : '-';
       const noteStr = (e.expenseNote || e.notes || '-').replace(/\t/g, ' ');
 
       lines.push(
-        `${e.date}\t${wName}\t${e.startTime}\t${e.endTime}\t${e.breakMinutes}\t${formatHours(e.decimalHours)}\t${e.siteDescription}\t${fuelStr}\t${expStr}\t${receiptStr}\t${noteStr}`
+        `${e.date}\t${wName}\t${e.startTime}\t${e.endTime}\t${e.breakMinutes}\t${formatHours(e.decimalHours)}\t${e.siteDescription}\t${noteStr}`
       );
     });
 
@@ -137,14 +134,9 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
         <td style="text-align:right">${r.days}</td>
         <td style="text-align:right"><strong>${formatHours(r.hours)}</strong></td>
         <td style="text-align:right">${formatCurrency(r.workerRate)}</td>
-        <td style="text-align:right">${formatCurrency(r.baseWages)}</td>
+        <td style="text-align:right;color:#047857;font-weight:bold">${formatCurrency(r.baseWages)}</td>
         <td style="text-align:right">${formatCurrency(r.clientRate)}</td>
         <td style="text-align:right;color:#1d4ed8;font-weight:bold">${formatCurrency(r.clientAR)}</td>
-        <td style="text-align:right">${formatCurrency(r.fuel)}</td>
-        <td style="text-align:right">${formatCurrency(r.expenses)}</td>
-        <td style="text-align:right;color:#dc2626">- ${formatCurrency(r.deposit)}</td>
-        <td style="text-align:right">${formatCurrency(r.operating)}</td>
-        <td style="text-align:right;color:#047857;font-weight:bold">${formatCurrency(r.netPayout)}</td>
         <td>${r.notes}</td>
       </tr>`
       )
@@ -162,9 +154,6 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
         <td style="text-align:right">${e.breakMinutes}</td>
         <td style="text-align:right"><strong>${formatHours(e.decimalHours)}</strong></td>
         <td>${e.siteDescription}</td>
-        <td style="text-align:right">${formatCurrency(e.fuelExpenses || 0)}</td>
-        <td style="text-align:right">${formatCurrency(e.expenses || 0)}</td>
-        <td>${e.photoData ? 'Ja (Foto)' : '-'}</td>
         <td>${e.expenseNote || e.notes || '-'}</td>
       </tr>`;
       })
@@ -183,11 +172,11 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
       </head>
       <body>
         <h2>BAUZEIT • MONATSABRECHNUNG (${month})</h2>
-        <h3>1. Monatsabrechnung & Löhne</h3>
+        <h3>1. Monatsabrechnung & Löhne (Stunden × Stundenlohn)</h3>
         <table>
           <thead>
             <tr>
-              <th>Mitarbeiter</th><th>Tage</th><th>Stunden</th><th>Lohn/h</th><th>Grundlohn</th><th>AR/h</th><th>Kunden-AR</th><th>Benzin</th><th>Auslagen</th><th>Anzahlung</th><th>Betriebsk.</th><th>Auszahlung Netto</th><th>Notiz</th>
+              <th>Mitarbeiter</th><th>Tage</th><th>Stunden (h)</th><th>Stundenlohn (€/h)</th><th>Gesamtlohn (€)</th><th>Kunden-AR (€/h)</th><th>Kunden-AR Gesamt (€)</th><th>Notiz</th>
             </tr>
           </thead>
           <tbody>
@@ -197,14 +186,9 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
               <td style="text-align:right">${totals.days}</td>
               <td style="text-align:right">${formatHours(totals.hours)}</td>
               <td>-</td>
-              <td style="text-align:right">${formatCurrency(totals.baseWages)}</td>
+              <td style="text-align:right;color:#047857">${formatCurrency(totals.baseWages)}</td>
               <td>-</td>
               <td style="text-align:right;color:#1d4ed8">${formatCurrency(totals.clientAR)}</td>
-              <td style="text-align:right">${formatCurrency(totals.fuel)}</td>
-              <td style="text-align:right">${formatCurrency(totals.expenses)}</td>
-              <td style="text-align:right;color:#dc2626">- ${formatCurrency(totals.deposit)}</td>
-              <td style="text-align:right">${formatCurrency(totals.operating)}</td>
-              <td style="text-align:right;color:#047857">${formatCurrency(totals.netPayout)}</td>
               <td>-</td>
             </tr>
           </tbody>
@@ -213,7 +197,7 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
         <table>
           <thead>
             <tr>
-              <th>Datum</th><th>Mitarbeiter</th><th>Beginn</th><th>Ende</th><th>Pause (Min)</th><th>Stunden</th><th>Baustelle</th><th>Benzin</th><th>Auslagen</th><th>Beleg</th><th>Notiz</th>
+              <th>Datum</th><th>Mitarbeiter</th><th>Beginn</th><th>Ende</th><th>Pause (Min)</th><th>Stunden</th><th>Baustelle / Einsatzort</th><th>Notiz</th>
             </tr>
           </thead>
           <tbody>
@@ -366,12 +350,9 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
                   <th className="py-2 px-2 text-right border-r border-blue-800">Tage</th>
                   <th className="py-2 px-2 text-right border-r border-blue-800">Std.</th>
                   <th className="py-2 px-2 text-right border-r border-blue-800">Lohn/h</th>
-                  <th className="py-2 px-2 text-right border-r border-blue-800">Grundlohn</th>
-                  <th className="py-2 px-2 text-right border-r border-blue-800">Kunden-AR</th>
-                  <th className="py-2 px-2 text-right border-r border-blue-800">Benzin</th>
-                  <th className="py-2 px-2 text-right border-r border-blue-800">Auslagen</th>
-                  <th className="py-2 px-2 text-right border-r border-blue-800">Anzahlung</th>
-                  <th className="py-2 px-2.5 text-right">Auszahlung</th>
+                  <th className="py-2 px-2.5 text-right border-r border-blue-800 text-emerald-300">Gesamtlohn</th>
+                  <th className="py-2 px-2 text-right border-r border-blue-800">Kunden-AR/h</th>
+                  <th className="py-2 px-2.5 text-right text-blue-200">Kunden-AR Gesamt</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
@@ -381,12 +362,9 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
                     <td className="py-2 px-2 text-right">{r.days}</td>
                     <td className="py-2 px-2 text-right font-bold whitespace-nowrap">{formatHours(r.hours)} h</td>
                     <td className="py-2 px-2 text-right whitespace-nowrap">{formatCurrency(r.workerRate)}</td>
-                    <td className="py-2 px-2 text-right whitespace-nowrap">{formatCurrency(r.baseWages)}</td>
-                    <td className="py-2 px-2 text-right font-bold text-blue-700 whitespace-nowrap">{formatCurrency(r.clientAR)}</td>
-                    <td className="py-2 px-2 text-right text-orange-600 whitespace-nowrap">{formatCurrency(r.fuel)}</td>
-                    <td className="py-2 px-2 text-right text-emerald-600 whitespace-nowrap">{formatCurrency(r.expenses)}</td>
-                    <td className="py-2 px-2 text-right text-red-600 whitespace-nowrap">- {formatCurrency(r.deposit)}</td>
-                    <td className="py-2 px-2.5 text-right font-black text-emerald-700 whitespace-nowrap">{formatCurrency(r.netPayout)}</td>
+                    <td className="py-2 px-2.5 text-right font-black text-emerald-700 whitespace-nowrap">{formatCurrency(r.baseWages)}</td>
+                    <td className="py-2 px-2 text-right whitespace-nowrap">{formatCurrency(r.clientRate)}</td>
+                    <td className="py-2 px-2.5 text-right font-bold text-blue-700 whitespace-nowrap">{formatCurrency(r.clientAR)}</td>
                   </tr>
                 ))}
               </tbody>
@@ -396,12 +374,9 @@ export const MonthlyDocumentModal: React.FC<MonthlyDocumentModalProps> = ({
                   <td className="py-2 px-2 text-right">{totals.days}</td>
                   <td className="py-2 px-2 text-right whitespace-nowrap">{formatHours(totals.hours)} h</td>
                   <td className="py-2 px-2 text-right">-</td>
-                  <td className="py-2 px-2 text-right whitespace-nowrap">{formatCurrency(totals.baseWages)}</td>
-                  <td className="py-2 px-2 text-right text-blue-700 whitespace-nowrap">{formatCurrency(totals.clientAR)}</td>
-                  <td className="py-2 px-2 text-right text-orange-600 whitespace-nowrap">{formatCurrency(totals.fuel)}</td>
-                  <td className="py-2 px-2 text-right text-emerald-600 whitespace-nowrap">{formatCurrency(totals.expenses)}</td>
-                  <td className="py-2 px-2 text-right text-red-600 whitespace-nowrap">- {formatCurrency(totals.deposit)}</td>
-                  <td className="py-2 px-2.5 text-right text-emerald-700 whitespace-nowrap">{formatCurrency(totals.netPayout)}</td>
+                  <td className="py-2 px-2.5 text-right text-emerald-700 whitespace-nowrap">{formatCurrency(totals.baseWages)}</td>
+                  <td className="py-2 px-2 text-right">-</td>
+                  <td className="py-2 px-2.5 text-right text-blue-700 whitespace-nowrap">{formatCurrency(totals.clientAR)}</td>
                 </tr>
               </tfoot>
             </table>
