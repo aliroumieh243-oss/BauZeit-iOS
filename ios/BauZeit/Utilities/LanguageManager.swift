@@ -80,6 +80,11 @@ class LanguageManager: ObservableObject {
             "Löschen": "حذف",
             "Tageseintrag löschen": "حذف تسجيل هذا اليوم",
             "Fertig": "تم",
+            "Dauerhaft angemeldet bleiben": "البقاء مسجلاً للدخول دائماً",
+            "Schnell-Start": "دخول سريع",
+            "Als Chef (Inhaber) starten": "الدخول كمسؤول (المدير)",
+            "Als Mitarbeiter starten": "الدخول كعامل",
+            "Oder mit E-Mail anmelden": "أو تسجيل الدخول بالبريد",
             
             // Formular-Felder
             "Vollständiger Name": "الاسم الكامل",

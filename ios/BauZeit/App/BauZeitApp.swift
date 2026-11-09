@@ -32,6 +32,7 @@ struct BauZeitApp: App {
     var body: some Scene {
         WindowGroup {
             MainContentView()
+                .id(lang.currentLanguage)
                 .environmentObject(authVM)
                 .environmentObject(timeVM)
                 .environmentObject(lang)

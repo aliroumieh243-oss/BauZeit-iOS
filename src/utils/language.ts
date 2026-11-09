@@ -83,6 +83,10 @@ const DICTIONARY: Record<string, string> = {
   "Löschen": "حذف",
   "Tageseintrag löschen": "حذف تسجيل هذا اليوم",
   "Fertig": "تم",
+  "Dauerhaft angemeldet bleiben": "البقاء مسجلاً للدخول دائماً",
+  "Schnell-Start": "دخول سريع",
+  "Als Chef (Inhaber) starten": "الدخول كمسؤول (المدير)",
+  "Als Mitarbeiter starten": "الدخول كعامل",
   
   // Formular-Felder
   "Vollständiger Name": "الاسم الكامل",

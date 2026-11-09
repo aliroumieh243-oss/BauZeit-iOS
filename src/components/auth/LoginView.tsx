@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage, t } from '../../utils/language';
-import { HardHat, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle, UserPlus, LogIn, Key, User, Globe } from 'lucide-react';
+import { HardHat, Lock, Mail, ArrowRight, Eye, EyeOff, AlertCircle, UserPlus, LogIn, Key, User, Globe, Crown, CheckSquare, Square, ChevronRight } from 'lucide-react';
 
 // The secret master code required to create an Admin / Owner account
 export const ADMIN_MASTER_CODES = ['CHEF2026', 'JASIN2026', 'BAUZEIT2026', 'ADMIN2026'];
 
 export const LoginView: React.FC = () => {
-  const { login, register } = useAuth();
+  const { login, register, quickStart } = useAuth();
   const { lang, toggleLanguage } = useLanguage();
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [email, setEmail] = useState('');
@@ -15,6 +15,7 @@ export const LoginView: React.FC = () => {
   const [displayName, setDisplayName] = useState('');
   const [adminCode, setAdminCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [stayLoggedIn, setStayLoggedIn] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -230,10 +231,26 @@ export const LoginView: React.FC = () => {
             </div>
           )}
 
+          {/* Auto-Login Checkbox */}
+          <div className="pt-1">
+            <button
+              type="button"
+              onClick={() => setStayLoggedIn(!stayLoggedIn)}
+              className="flex items-center gap-2 text-xs font-semibold text-slate-700 hover:text-slate-900 transition"
+            >
+              {stayLoggedIn ? (
+                <CheckSquare className="w-4 h-4 text-blue-600" />
+              ) : (
+                <Square className="w-4 h-4 text-slate-400" />
+              )}
+              <span>{t('Dauerhaft angemeldet bleiben')}</span>
+            </button>
+          </div>
+
           <button
             type="submit"
             disabled={isSubmitting}
-            className="ios-touch w-full py-4 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition disabled:opacity-50 mt-3"
+            className="ios-touch w-full py-4 px-4 rounded-2xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm shadow-md flex items-center justify-center gap-2 transition disabled:opacity-50 mt-2"
           >
             <span>
               {isSubmitting
@@ -244,6 +261,43 @@ export const LoginView: React.FC = () => {
             </span>
             <ArrowRight className="w-4 h-4" />
           </button>
+
+          {/* 1-Tap Quick Start */}
+          <div className="pt-3">
+            <div className="flex items-center gap-3 my-2">
+              <div className="flex-1 h-px bg-slate-200" />
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                {t('Schnell-Start')}
+              </span>
+              <div className="flex-1 h-px bg-slate-200" />
+            </div>
+
+            <div className="space-y-2 pt-1">
+              <button
+                type="button"
+                onClick={() => quickStart('owner')}
+                className="w-full py-3 px-3.5 rounded-2xl bg-amber-50 hover:bg-amber-100 border border-amber-200/80 text-amber-900 font-bold text-xs flex items-center justify-between transition"
+              >
+                <div className="flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-amber-600" />
+                  <span>{t('Als Chef (Inhaber) starten')}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-amber-500" />
+              </button>
+
+              <button
+                type="button"
+                onClick={() => quickStart('member')}
+                className="w-full py-3 px-3.5 rounded-2xl bg-blue-50 hover:bg-blue-100 border border-blue-200/80 text-blue-900 font-bold text-xs flex items-center justify-between transition"
+              >
+                <div className="flex items-center gap-2">
+                  <User className="w-4 h-4 text-blue-600" />
+                  <span>{t('Als Mitarbeiter starten')}</span>
+                </div>
+                <ChevronRight className="w-4 h-4 text-blue-500" />
+              </button>
+            </div>
+          </div>
         </form>
       </div>
     </div>

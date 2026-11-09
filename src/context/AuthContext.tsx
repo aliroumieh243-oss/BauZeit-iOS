@@ -18,6 +18,7 @@ interface AuthContextType {
     name?: string,
     role?: 'owner' | 'member'
   ) => Promise<{ success: boolean; error?: string }>;
+  quickStart: (role: 'owner' | 'member') => Promise<void>;
   logout: () => void;
   switchUser: (userId: string) => void;
   addNewWorker: (
@@ -199,6 +200,31 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
+  const quickStart = async (role: 'owner' | 'member'): Promise<void> => {
+    const allUsers = await getDbUsers();
+    const existing = allUsers.find(u => u.role === role);
+    if (existing) {
+      setCurrentUser(existing);
+      localStorage.setItem(CURRENT_USER_SESSION_KEY, existing.id);
+      return;
+    }
+
+    const isChef = role === 'owner';
+    const newAccount: UserProfile = {
+      id: `user_${role}_${Date.now()}`,
+      email: isChef ? 'chef@bauzeit.de' : 'mitarbeiter@bauzeit.de',
+      displayName: isChef ? 'Chef (Inhaber)' : 'Mitarbeiter',
+      role,
+      workerRate: isChef ? 0 : 12,
+      clientRate: 35,
+      createdAt: new Date().toISOString()
+    };
+    await saveDbUser(newAccount);
+    setCurrentUser(newAccount);
+    localStorage.setItem(CURRENT_USER_SESSION_KEY, newAccount.id);
+    await refreshUsers();
+  };
+
   const isOwner = currentUser?.role === 'owner';
   const isMember = currentUser?.role === 'member';
 
@@ -213,6 +239,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isFirebaseActive: isConfigured,
         login,
         register,
+        quickStart,
         logout,
         switchUser,
         addNewWorker,

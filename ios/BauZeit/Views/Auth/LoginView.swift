@@ -14,6 +14,7 @@ struct LoginView: View {
     @State private var password: String = ""
     @State private var adminCode: String = ""
     @State private var showPassword: Bool = false
+    @State private var stayLoggedIn: Bool = true
     
     var isDark: Bool {
         colorScheme == .dark
@@ -264,6 +265,25 @@ struct LoginView: View {
                                     )
                                 }
                             }
+                            // Auto-Login Checkbox
+                            Button(action: {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                                #endif
+                                stayLoggedIn.toggle()
+                            }) {
+                                HStack(spacing: 8) {
+                                    Image(systemName: stayLoggedIn ? "checkmark.square.fill" : "square")
+                                        .foregroundColor(stayLoggedIn ? .blue : .secondary)
+                                        .font(.system(size: 17))
+                                    Text(lang.text("Dauerhaft angemeldet bleiben"))
+                                        .font(.system(size: 13, weight: .semibold, design: .rounded))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .padding(.top, 2)
                         }
                         
                         // Primary Action Submit Button
@@ -289,6 +309,75 @@ struct LoginView: View {
                             .shadow(color: Color.blue.opacity(0.4), radius: 10, y: 5)
                         }
                         .padding(.top, 6)
+                        
+                        // Divider for 1-Tap Schnell-Start
+                        HStack(spacing: 12) {
+                            Rectangle()
+                                .fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                                .frame(height: 1)
+                            Text(lang.text("Schnell-Start"))
+                                .font(.system(size: 11, weight: .bold))
+                                .foregroundColor(.secondary)
+                                .textCase(.uppercase)
+                            Rectangle()
+                                .fill(isDark ? Color.white.opacity(0.12) : Color.black.opacity(0.08))
+                                .frame(height: 1)
+                        }
+                        .padding(.top, 14)
+                        .padding(.bottom, 2)
+
+                        // 1-Tap Schnell-Login Buttons
+                        VStack(spacing: 8) {
+                            Button(action: {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                #endif
+                                authVM.quickStart(as: .owner)
+                            }) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "crown.fill")
+                                        .foregroundColor(.orange)
+                                        .font(.system(size: 15))
+                                    Text(lang.text("Als Chef (Inhaber) starten"))
+                                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(isDark ? Color.white.opacity(0.08) : Color.orange.opacity(0.1))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+
+                            Button(action: {
+                                #if canImport(UIKit)
+                                UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+                                #endif
+                                authVM.quickStart(as: .member)
+                            }) {
+                                HStack(spacing: 10) {
+                                    Image(systemName: "person.fill")
+                                        .foregroundColor(.blue)
+                                        .font(.system(size: 15))
+                                    Text(lang.text("Als Mitarbeiter starten"))
+                                        .font(.system(size: 14, weight: .bold, design: .rounded))
+                                        .foregroundColor(.primary)
+                                    Spacer()
+                                    Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
+                                        .font(.system(size: 12, weight: .bold))
+                                        .foregroundColor(.secondary)
+                                }
+                                .padding(.horizontal, 14)
+                                .padding(.vertical, 12)
+                                .background(isDark ? Color.white.opacity(0.08) : Color.blue.opacity(0.08))
+                                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                            }
+                            .buttonStyle(.plain)
+                        }
                     }
                     .padding(22)
                     .background(cardBackgroundLayer)
@@ -406,9 +495,9 @@ struct LoginView: View {
         UIImpactFeedbackGenerator(style: .medium).impactOccurred()
         #endif
         if isRegisterMode {
-            _ = authVM.register(name: name, email: email, password: password, adminCode: adminCode)
+            _ = authVM.register(name: name, email: email, password: password, adminCode: adminCode, stayLoggedIn: stayLoggedIn)
         } else {
-            _ = authVM.login(email: email, password: password)
+            _ = authVM.login(email: email, password: password, stayLoggedIn: stayLoggedIn)
         }
     }
 }

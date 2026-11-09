@@ -246,122 +246,127 @@ struct CalendarView: View {
                 .padding(.bottom, 6)
             }
             
-            // MARK: - Aufgeräumte Tages-Liste
-            List {
-                ForEach(daysForMonth) { day in
-                    Button(action: {
-                        #if canImport(UIKit)
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
-                        #endif
-                        selectedDayInfo = day
-                    }) {
-                        HStack(spacing: 12) {
-                            
-                            // Datums-Badge (Heute wird blau hervorgehoben!)
-                            VStack(spacing: 2) {
-                                Text(day.dayOfWeek)
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundColor(day.isToday ? .white : (day.entry != nil ? .blue : (day.isWeekend ? .secondary : .primary)))
+            // MARK: - Aufgeräumte Tages-Liste (Reines SwiftUI Card-Design, immun gegen RTL-Spiegelfehler)
+            ScrollView {
+                LazyVStack(spacing: 8) {
+                    ForEach(daysForMonth) { day in
+                        Button(action: {
+                            #if canImport(UIKit)
+                            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+                            #endif
+                            selectedDayInfo = day
+                        }) {
+                            HStack(spacing: 12) {
                                 
-                                Text(String(format: "%02d", day.dayNumber))
-                                    .font(.system(size: 16, weight: .black, design: .rounded))
-                                    .foregroundColor(day.isToday ? .white : .primary)
-                            }
-                            .frame(width: 44, height: 44)
-                            .background(
-                                day.isToday
-                                ? Color.blue
-                                : (day.entry != nil ? Color.blue.opacity(0.12) : Color.fieldBackground)
-                            )
-                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                    .stroke(day.isToday ? Color.blue : Color.clear, lineWidth: 2)
-                            )
-                            
-                            // Mittlerer Bereich: Arbeitszeit oder dezenter Leerzustand
-                            VStack(alignment: .leading, spacing: 3) {
-                                if let e = day.entry {
-                                    HStack(spacing: 6) {
-                                        Text("\(e.startTime) – \(e.endTime) Uhr")
-                                            .font(.subheadline)
-                                            .fontWeight(.bold)
-                                            .foregroundColor(.primary)
-                                        
-                                        if e.breakMinutes > 0 {
-                                            Text("(\(e.breakMinutes)m P.)")
-                                                .font(.caption2)
-                                                .foregroundColor(.secondary)
-                                        }
-                                    }
+                                // Datums-Badge (Heute wird blau hervorgehoben!)
+                                VStack(spacing: 2) {
+                                    Text(day.dayOfWeek)
+                                        .font(.system(size: 10, weight: .bold))
+                                        .foregroundColor(day.isToday ? .white : (day.entry != nil ? .blue : (day.isWeekend ? .secondary : .primary)))
                                     
-                                    Text(e.siteDescription)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                        .lineLimit(1)
-                                    
-                                    // Spesen-Badges & Foto-Badge direkt am Tag
-                                    if e.fuelExpenses > 0 || e.expenses > 0 || (e.photoData != nil && !e.photoData!.isEmpty) {
+                                    Text(String(format: "%02d", day.dayNumber))
+                                        .font(.system(size: 16, weight: .black, design: .rounded))
+                                        .foregroundColor(day.isToday ? .white : .primary)
+                                }
+                                .frame(width: 44, height: 44)
+                                .background(
+                                    day.isToday
+                                    ? Color.blue
+                                    : (day.entry != nil ? Color.blue.opacity(0.12) : Color.fieldBackground)
+                                )
+                                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                        .stroke(day.isToday ? Color.blue : Color.clear, lineWidth: 2)
+                                )
+                                
+                                // Mittlerer Bereich: Arbeitszeit oder dezenter Leerzustand
+                                VStack(alignment: .leading, spacing: 3) {
+                                    if let e = day.entry {
                                         HStack(spacing: 6) {
-                                            if e.fuelExpenses > 0 {
-                                                Text("⛽ \(TimeCalculations.formatCurrency(e.fuelExpenses))")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.orange)
-                                            }
-                                            if e.expenses > 0 {
-                                                Text("💶 \(TimeCalculations.formatCurrency(e.expenses))")
-                                                    .font(.system(size: 10, weight: .bold))
-                                                    .foregroundColor(.green)
-                                            }
-                                            if let p = e.photoData, !p.isEmpty {
-                                                HStack(spacing: 3) {
-                                                    Image(systemName: "camera.fill")
-                                                    Text(lang.text("Beleg"))
-                                                }
-                                                .font(.system(size: 10, weight: .bold))
-                                                .foregroundColor(.blue)
-                                                .padding(.horizontal, 6)
-                                                .padding(.vertical, 1.5)
-                                                .background(Color.blue.opacity(0.12))
-                                                .cornerRadius(4)
+                                            Text("\(e.startTime) – \(e.endTime) Uhr")
+                                                .font(.subheadline)
+                                                .fontWeight(.bold)
+                                                .foregroundColor(.primary)
+                                            
+                                            if e.breakMinutes > 0 {
+                                                Text("(\(e.breakMinutes)m P.)")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.secondary)
                                             }
                                         }
-                                        .padding(.top, 1)
+                                        
+                                        Text(e.siteDescription)
+                                            .font(.caption)
+                                            .foregroundColor(.secondary)
+                                            .lineLimit(1)
+                                        
+                                        // Spesen-Badges & Foto-Badge direkt am Tag
+                                        if e.fuelExpenses > 0 || e.expenses > 0 || (e.photoData != nil && !e.photoData!.isEmpty) {
+                                            HStack(spacing: 6) {
+                                                if e.fuelExpenses > 0 {
+                                                    Text("⛽ \(TimeCalculations.formatCurrency(e.fuelExpenses))")
+                                                        .font(.system(size: 10, weight: .bold))
+                                                        .foregroundColor(.orange)
+                                                }
+                                                if e.expenses > 0 {
+                                                    Text("💶 \(TimeCalculations.formatCurrency(e.expenses))")
+                                                        .font(.system(size: 10, weight: .bold))
+                                                        .foregroundColor(.green)
+                                                }
+                                                if let p = e.photoData, !p.isEmpty {
+                                                    HStack(spacing: 3) {
+                                                        Image(systemName: "camera.fill")
+                                                        Text(lang.text("Beleg"))
+                                                    }
+                                                    .font(.system(size: 10, weight: .bold))
+                                                    .foregroundColor(.blue)
+                                                    .padding(.horizontal, 6)
+                                                    .padding(.vertical, 1.5)
+                                                    .background(Color.blue.opacity(0.12))
+                                                    .cornerRadius(4)
+                                                }
+                                            }
+                                            .padding(.top, 1)
+                                        }
+                                    } else {
+                                        Text(day.isWeekend
+                                             ? lang.text("Wochenende")
+                                             : (day.isToday ? lang.text("Heute (Noch nicht erfasst)") : lang.text("Kein Eintrag")))
+                                            .font(.subheadline)
+                                            .fontWeight(day.isToday ? .semibold : .regular)
+                                            .foregroundColor(day.isToday ? .blue : .secondary)
                                     }
+                                }
+                                
+                                Spacer()
+                                
+                                // Rechter Bereich: Stunden-Pille oder direktes Plus zum Eintragen
+                                if let e = day.entry {
+                                    Text("\(TimeCalculations.formatHours(e.decimalHours)) \(lang.text("Std."))")
+                                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                                        .padding(.horizontal, 9)
+                                        .padding(.vertical, 5)
+                                        .background(Color.green.opacity(0.14))
+                                        .foregroundColor(.green)
+                                        .clipShape(Capsule())
                                 } else {
-                                    Text(day.isWeekend
-                                         ? lang.text("Wochenende")
-                                         : (day.isToday ? lang.text("Heute (Noch nicht erfasst)") : lang.text("Kein Eintrag")))
-                                        .font(.subheadline)
-                                        .fontWeight(day.isToday ? .semibold : .regular)
-                                        .foregroundColor(day.isToday ? .blue : .secondary)
+                                    Image(systemName: "plus.circle.fill")
+                                        .font(.system(size: 22))
+                                        .foregroundColor(day.isToday ? .blue : Color.gray.opacity(0.4))
                                 }
                             }
-                            
-                            Spacer()
-                            
-                            // Rechter Bereich: Stunden-Pille oder direktes Plus zum Eintragen
-                            if let e = day.entry {
-                                Text("\(TimeCalculations.formatHours(e.decimalHours)) \(lang.text("Std."))")
-                                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                                    .padding(.horizontal, 9)
-                                    .padding(.vertical, 5)
-                                    .background(Color.green.opacity(0.14))
-                                    .foregroundColor(.green)
-                                    .clipShape(Capsule())
-                            } else {
-                                Image(systemName: "plus.circle.fill")
-                                    .font(.system(size: 22))
-                                    .foregroundColor(day.isToday ? .blue : Color.gray.opacity(0.4))
-                            }
+                            .padding(12)
+                            .background(Color.cardBackground)
+                            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                            .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
                         }
-                        .padding(.vertical, 3)
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 10)
             }
-            #if os(iOS)
-            .listStyle(.insetGrouped)
-            #endif
         }
         .background(Color.appBackground)
         .toolbar {

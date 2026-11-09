@@ -46,7 +46,7 @@ class AuthViewModel: ObservableObject {
         }
     }
     
-    func login(email: String, password: String) -> Bool {
+    func login(email: String, password: String, stayLoggedIn: Bool = true) -> Bool {
         let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         guard !cleanEmail.isEmpty, !password.isEmpty else {
             errorMessage = "Bitte E-Mail und Passwort eingeben."
@@ -55,16 +55,49 @@ class AuthViewModel: ObservableObject {
         
         if let matched = users.first(where: { $0.email.lowercased() == cleanEmail }) {
             self.currentUser = matched
-            UserDefaults.standard.set(matched.id, forKey: sessionUserKey)
+            if stayLoggedIn {
+                UserDefaults.standard.set(matched.id, forKey: sessionUserKey)
+            } else {
+                UserDefaults.standard.removeObject(forKey: sessionUserKey)
+            }
             self.errorMessage = nil
             return true
         } else {
-            errorMessage = "Kein Konto mit dieser E-Mail gefunden. Bitte erstelle zuerst ein neues Konto."
+            errorMessage = "Kein Konto mit dieser E-Mail gefunden. Bitte erstelle zuerst ein neues Konto oder nutze den Schnell-Start."
             return false
         }
     }
     
-    func register(name: String, email: String, password: String, adminCode: String) -> Bool {
+    func quickStart(as role: UserRole) {
+        if let existing = users.first(where: { $0.role == role }) {
+            self.currentUser = existing
+            UserDefaults.standard.set(existing.id, forKey: sessionUserKey)
+            self.errorMessage = nil
+            return
+        }
+        
+        // Auto-create initial account for quick 1-tap onboarding
+        let id = UUID().uuidString
+        let isChef = (role == .owner)
+        let newAccount = UserProfile(
+            id: id,
+            email: isChef ? "chef@bauzeit.de" : "mitarbeiter@bauzeit.de",
+            displayName: isChef ? "Chef (Inhaber)" : "Mitarbeiter",
+            role: role,
+            workerRate: isChef ? 0.0 : 12.0,
+            clientRate: 35.0,
+            phoneNumber: nil,
+            createdAt: Date()
+        )
+        users.append(newAccount)
+        saveUsers()
+        
+        self.currentUser = newAccount
+        UserDefaults.standard.set(newAccount.id, forKey: sessionUserKey)
+        self.errorMessage = nil
+    }
+    
+    func register(name: String, email: String, password: String, adminCode: String, stayLoggedIn: Bool = true) -> Bool {
         let cleanEmail = email.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
         let cleanName = name.trimmingCharacters(in: .whitespacesAndNewlines)
         let cleanAdminCode = adminCode.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
@@ -105,7 +138,11 @@ class AuthViewModel: ObservableObject {
         saveUsers()
         
         self.currentUser = newUser
-        UserDefaults.standard.set(newUser.id, forKey: sessionUserKey)
+        if stayLoggedIn {
+            UserDefaults.standard.set(newUser.id, forKey: sessionUserKey)
+        } else {
+            UserDefaults.standard.removeObject(forKey: sessionUserKey)
+        }
         self.errorMessage = nil
         return true
     }
