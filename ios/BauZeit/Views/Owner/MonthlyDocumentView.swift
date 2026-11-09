@@ -52,337 +52,31 @@ struct MonthlyDocumentView: View {
             filterWorkerId: selectedFilterWorkerId
         )
     }
+
+    private var summaryRows: [WorkerSummaryRow] {
+        buildSummaryRows()
+    }
+    
+    private var totalSummary: WorkerSummaryRow {
+        calculateTotalSummary(rows: summaryRows)
+    }
     
     var body: some View {
         NavigationView {
             ScrollView {
                 VStack(spacing: 16) {
-                    
-                    // MARK: - Month & Worker Filter Bar
-                    VStack(spacing: 12) {
-                        HStack {
-                            Button(action: { timeVM.previousMonth() }) {
-                                Image(systemName: lang.isArabic ? "chevron.right" : "chevron.left")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .frame(width: 34, height: 34)
-                                    .background(Color.fieldBackground)
-                                    .cornerRadius(10)
-                            }
-                            Spacer()
-                            VStack(spacing: 2) {
-                                Text(lang.isArabic ? "شهر المحاسبة" : "ABRECHNUNGSMONAT")
-                                    .font(.system(size: 9, weight: .bold))
-                                    .foregroundColor(.orange)
-                                Text(timeVM.formattedMonthTitle(isArabic: lang.isArabic))
-                                    .font(.headline)
-                                    .fontWeight(.black)
-                            }
-                            Spacer()
-                            Button(action: { timeVM.nextMonth() }) {
-                                Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
-                                    .font(.system(size: 14, weight: .bold))
-                                    .frame(width: 34, height: 34)
-                                    .background(Color.fieldBackground)
-                                    .cornerRadius(10)
-                            }
-                        }
-                        
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 8) {
-                                Button(action: { selectedFilterWorkerId = "ALL" }) {
-                                    HStack(spacing: 5) {
-                                        Image(systemName: "person.3.fill")
-                                            .font(.system(size: 10))
-                                        Text(lang.isArabic ? "جميع العمال" : "Alle Mitarbeiter (\(workers.count))")
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-                                    }
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 7)
-                                    .background(selectedFilterWorkerId == "ALL" ? Color.blue : Color.fieldBackground)
-                                    .foregroundColor(selectedFilterWorkerId == "ALL" ? .white : .primary)
-                                    .cornerRadius(10)
-                                }
-                                
-                                ForEach(workers) { w in
-                                    Button(action: { selectedFilterWorkerId = w.id }) {
-                                        Text(w.displayName)
-                                            .font(.caption)
-                                            .fontWeight(.bold)
-                                            .padding(.horizontal, 12)
-                                            .padding(.vertical, 7)
-                                            .background(selectedFilterWorkerId == w.id ? Color.blue : Color.fieldBackground)
-                                            .foregroundColor(selectedFilterWorkerId == w.id ? .white : .primary)
-                                            .cornerRadius(10)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .padding(14)
-                    .background(Color.cardBackground)
-                    .cornerRadius(18)
-                    .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
-                    .padding(.horizontal, 16)
-                    
-                    // MARK: - Hero Action & Export Card
-                    VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 12) {
-                            Circle()
-                                .fill(LinearGradient(
-                                    colors: [Color.blue, Color.purple],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ))
-                                .frame(width: 42, height: 42)
-                                .overlay(Image(systemName: "tablecells.fill").foregroundColor(.white).font(.system(size: 18, weight: .bold)))
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(lang.isArabic ? "جدول وتقرير الشهر الذكي" : "Echte Monats-Tabelle & Export")
-                                    .font(.subheadline)
-                                    .fontWeight(.bold)
-                                Text(lang.isArabic ? "تصدير مباشر كجدول إكسل منسق أو نسخ فوري" : "Als echte Excel-Tabelle (.xls), CSV oder per 1-Klick Kopieren")
-                                    .font(.caption2)
-                                    .foregroundColor(.secondary)
-                            }
-                        }
-                        
-                        Divider()
-                        
-                        // Export Buttons
-                        VStack(spacing: 8) {
-                            // 1. Echte Excel-Tabelle (.xls)
-                            Button(action: prepareAndShareExcelTable) {
-                                HStack {
-                                    Image(systemName: "tablecells.badge.ellipsis")
-                                    Text(lang.isArabic ? "تصدير كجدول إكسل حقيقي (.xls)" : "Echte Excel-Tabelle erstellen & teilen (.xls)")
-                                        .fontWeight(.bold)
-                                }
-                                .font(.footnote)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 13)
-                                .background(Color.green)
-                                .foregroundColor(.white)
-                                .cornerRadius(12)
-                                .shadow(color: Color.green.opacity(0.25), radius: 5, y: 2)
-                            }
-                            
-                            HStack(spacing: 8) {
-                                // 2. 1-Klick Kopieren
-                                Button(action: copyForTable) {
-                                    HStack(spacing: 5) {
-                                        Image(systemName: copiedNotice ? "checkmark.circle.fill" : "doc.on.doc.fill")
-                                        Text(copiedNotice
-                                             ? (lang.isArabic ? "تم النسخ!" : "Kopiert!")
-                                             : (lang.isArabic ? "نسخ للجدول" : "Tabelle kopieren"))
-                                            .fontWeight(.bold)
-                                    }
-                                    .font(.caption)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 11)
-                                    .background(copiedNotice ? Color.green : Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(12)
-                                }
-                                
-                                // 3. CSV Teilen
-                                Button(action: prepareAndShareCSV) {
-                                    HStack(spacing: 5) {
-                                        Image(systemName: "square.and.arrow.up")
-                                        Text(lang.isArabic ? "ملف CSV" : "Als CSV-Tabelle")
-                                            .fontWeight(.bold)
-                                    }
-                                    .font(.caption)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, 11)
-                                    .background(Color.fieldBackground)
-                                    .foregroundColor(.primary)
-                                    .cornerRadius(12)
-                                }
-                            }
-                        }
-                    }
-                    .padding(16)
-                    .background(Color.cardBackground)
-                    .cornerRadius(18)
-                    .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
-                    .padding(.horizontal, 16)
-                    
+                    filterHeaderView
+                    actionExportCardView
                     if copiedNotice {
-                        HStack(spacing: 8) {
-                            Image(systemName: "checkmark.seal.fill")
-                                .foregroundColor(.green)
-                            Text(lang.isArabic
-                                 ? "تم نسخ الجدول! الصقه مباشرة في إكسل أو جداول غوغل."
-                                 : "Tabelle in der Zwischenablage! Einfach in Excel, Numbers oder Google Sheets einfügen.")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundColor(.green)
-                        }
-                        .padding(12)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.green.opacity(0.12))
-                        .cornerRadius(12)
-                        .padding(.horizontal, 16)
+                        copiedNoticeBanner
                     }
-                    
-                    // MARK: - View Mode Switcher (Echte Tabelle vs. Textbericht)
-                    Picker("Ansicht", selection: $activePreviewTab) {
-                        Text(lang.isArabic ? "📊 جدول حقيقي" : "📊 Echte Tabelle").tag(0)
-                        Text(lang.isArabic ? "📄 تقرير نصي" : "📄 Text-Bericht").tag(1)
-                    }
-                    .pickerStyle(.segmented)
-                    .padding(.horizontal, 16)
-                    
+                    viewModePicker
                     if activePreviewTab == 0 {
-                        // MARK: - ECHTE VISUELLE TABELLE 1: Mitarbeiter-Abrechnung
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "person.2.crop.square.stack.fill")
-                                    .foregroundColor(.blue)
-                                Text(lang.isArabic ? "الجدول 1: محاسبة العمال والرواتب" : "Tabelle 1: Monatsabrechnung & Löhne")
-                                    .font(.caption)
-                                    .fontWeight(.black)
-                                    .textCase(.uppercase)
-                                Spacer()
-                                Text(lang.isArabic ? "اسحب لليمين/اليسار ↔" : "Horizontal scrollen ↔")
-                                    .font(.system(size: 9, weight: .semibold))
-                                    .foregroundColor(.secondary)
-                            }
-                            .padding(.horizontal, 16)
-                            
-                            ScrollView(.horizontal, showsIndicators: true) {
-                                VStack(spacing: 0) {
-                                    // Header Row
-                                    HStack(spacing: 0) {
-                                        tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 115, align: .leading)
-                                        tableHeaderCell(lang.isArabic ? "أيام" : "Tage", width: 48, align: .trailing)
-                                        tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 68, align: .trailing)
-                                        tableHeaderCell(lang.isArabic ? "الساعة" : "Lohn/h", width: 68, align: .trailing)
-                                        tableHeaderCell(lang.isArabic ? "الراتب الإجمالي" : "Gesamtlohn", width: 88, align: .trailing)
-                                        tableHeaderCell(lang.isArabic ? "العميل AR/h" : "Kunden-AR/h", width: 86, align: .trailing)
-                                        tableHeaderCell(lang.isArabic ? "العميل الإجمالي" : "Kunden-AR Gesamt", width: 96, align: .trailing)
-                                    }
-                                    .background(Color(red: 0.12, green: 0.23, blue: 0.54))
-                                    
-                                    // Worker Rows
-                                    let summaryRows = buildSummaryRows()
-                                    ForEach(Array(summaryRows.enumerated()), id: \.element.id) { index, row in
-                                        HStack(spacing: 0) {
-                                            tableDataCell(row.workerName, width: 115, align: .leading, isBold: true)
-                                            tableDataCell("\(row.days)", width: 48, align: .trailing)
-                                            tableDataCell("\(TimeCalculations.formatHours(row.hours)) h", width: 68, align: .trailing, isBold: true)
-                                            tableDataCell(TimeCalculations.formatCurrency(row.workerRate), width: 68, align: .trailing)
-                                            tableDataCell(TimeCalculations.formatCurrency(row.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
-                                            tableDataCell(TimeCalculations.formatCurrency(row.clientRate), width: 86, align: .trailing)
-                                            tableDataCell(TimeCalculations.formatCurrency(row.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
-                                        }
-                                        .background(index % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
-                                        Divider()
-                                    }
-                                    
-                                    // Total Row
-                                    let tot = calculateTotalSummary(rows: summaryRows)
-                                    HStack(spacing: 0) {
-                                        tableDataCell(lang.isArabic ? "المجموع" : "GESAMT", width: 115, align: .leading, isBold: true)
-                                        tableDataCell("\(tot.days)", width: 48, align: .trailing, isBold: true)
-                                        tableDataCell("\(TimeCalculations.formatHours(tot.hours)) h", width: 68, align: .trailing, isBold: true)
-                                        tableDataCell("-", width: 68, align: .trailing)
-                                        tableDataCell(TimeCalculations.formatCurrency(tot.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
-                                        tableDataCell("-", width: 86, align: .trailing)
-                                        tableDataCell(TimeCalculations.formatCurrency(tot.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
-                                    }
-                                    .background(Color.blue.opacity(0.12))
-                                }
-                                .clipShape(RoundedRectangle(cornerRadius: 14))
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 14)
-                                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                                )
-                                .padding(.horizontal, 16)
-                            }
-                        }
-                        
-                        // MARK: - ECHTE VISUELLE TABELLE 2: Einzelaufstellung aller Tage
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Image(systemName: "calendar.day.timeline.left")
-                                    .foregroundColor(.purple)
-                                Text(lang.isArabic ? "الجدول 2: تفصيل أيام العمل (\(filteredEntries.count))" : "Tabelle 2: Einzelaufstellung Einsatztage (\(filteredEntries.count))")
-                                    .font(.caption)
-                                    .fontWeight(.black)
-                                    .textCase(.uppercase)
-                                Spacer()
-                            }
-                            .padding(.horizontal, 16)
-                            
-                            if filteredEntries.isEmpty {
-                                Text(lang.isArabic ? "لا توجد إدخالات مسجلة لهذا الشهر." : "Keine Tage für diesen Filter im gewählten Monat eingetragen.")
-                                    .font(.footnote)
-                                    .foregroundColor(.secondary)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(20)
-                                    .background(Color.cardBackground)
-                                    .cornerRadius(14)
-                                    .padding(.horizontal, 16)
-                            } else {
-                                ScrollView(.horizontal, showsIndicators: true) {
-                                    VStack(spacing: 0) {
-                                        // Header
-                                        HStack(spacing: 0) {
-                                            tableHeaderCell(lang.isArabic ? "التاريخ" : "Datum", width: 86, align: .leading)
-                                            tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 100, align: .leading)
-                                            tableHeaderCell(lang.isArabic ? "الوقت" : "Uhrzeit", width: 92, align: .center)
-                                            tableHeaderCell(lang.isArabic ? "استراحة" : "Pause", width: 54, align: .trailing)
-                                            tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 66, align: .trailing)
-                                            tableHeaderCell(lang.isArabic ? "الموقع / الورشة" : "Baustelle / Einsatzort", width: 190, align: .leading)
-                                        }
-                                        .background(Color(red: 0.18, green: 0.16, blue: 0.45))
-                                        
-                                        ForEach(Array(filteredEntries.enumerated()), id: \.element.id) { idx, e in
-                                            let wName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
-                                            HStack(spacing: 0) {
-                                                tableDataCell(e.date, width: 86, align: .leading, isBold: true)
-                                                tableDataCell(wName, width: 100, align: .leading)
-                                                tableDataCell("\(e.startTime)–\(e.endTime)", width: 92, align: .center)
-                                                tableDataCell("\(e.breakMinutes)m", width: 54, align: .trailing)
-                                                tableDataCell("\(TimeCalculations.formatHours(e.decimalHours)) h", width: 66, align: .trailing, color: .blue, isBold: true)
-                                                tableDataCell(e.siteDescription, width: 190, align: .leading)
-                                            }
-                                            .background(idx % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
-                                            Divider()
-                                        }
-                                    }
-                                    .clipShape(RoundedRectangle(cornerRadius: 14))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 14)
-                                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
-                                    )
-                                    .padding(.horizontal, 16)
-                                }
-                            }
-                        }
+                        visualTable1View
+                        visualTable2View
                     } else {
-                        // MARK: - Textbericht Vorschau
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(lang.isArabic ? "معاينة التقرير النصي" : "Textbericht-Vorschau")
-                                .font(.caption)
-                                .fontWeight(.bold)
-                                .foregroundColor(.secondary)
-                                .textCase(.uppercase)
-                                .padding(.horizontal, 16)
-                            
-                            Text(formattedReportText)
-                                .font(.system(size: 11, design: .monospaced))
-                                .lineSpacing(3)
-                                .padding(14)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .background(Color.cardBackground)
-                                .cornerRadius(14)
-                                .padding(.horizontal, 16)
-                        }
+                        textReportView
                     }
-                    
                     Spacer(minLength: 30)
                 }
                 .padding(.top, 12)
@@ -403,6 +97,334 @@ struct MonthlyDocumentView: View {
                     ShareSheet(activityItems: [url])
                 }
             }
+        }
+    }
+
+    // MARK: - Subviews
+    
+    @ViewBuilder
+    private var filterHeaderView: some View {
+        VStack(spacing: 12) {
+            HStack {
+                Button(action: { timeVM.previousMonth() }) {
+                    Image(systemName: lang.isArabic ? "chevron.right" : "chevron.left")
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(width: 34, height: 34)
+                        .background(Color.fieldBackground)
+                        .cornerRadius(10)
+                }
+                Spacer()
+                VStack(spacing: 2) {
+                    Text(lang.isArabic ? "شهر المحاسبة" : "ABRECHNUNGSMONAT")
+                        .font(.system(size: 9, weight: .bold))
+                        .foregroundColor(.orange)
+                    Text(timeVM.formattedMonthTitle(isArabic: lang.isArabic))
+                        .font(.headline)
+                        .fontWeight(.black)
+                }
+                Spacer()
+                Button(action: { timeVM.nextMonth() }) {
+                    Image(systemName: lang.isArabic ? "chevron.left" : "chevron.right")
+                        .font(.system(size: 14, weight: .bold))
+                        .frame(width: 34, height: 34)
+                        .background(Color.fieldBackground)
+                        .cornerRadius(10)
+                }
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    Button(action: { selectedFilterWorkerId = "ALL" }) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "person.3.fill")
+                                .font(.system(size: 10))
+                            Text(lang.isArabic ? "جميع العمال" : "Alle Mitarbeiter (\(workers.count))")
+                                .font(.caption)
+                                .fontWeight(.bold)
+                        }
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 7)
+                        .background(selectedFilterWorkerId == "ALL" ? Color.blue : Color.fieldBackground)
+                        .foregroundColor(selectedFilterWorkerId == "ALL" ? .white : .primary)
+                        .cornerRadius(10)
+                    }
+                    
+                    ForEach(workers) { w in
+                        Button(action: { selectedFilterWorkerId = w.id }) {
+                            Text(w.displayName)
+                                .font(.caption)
+                                .fontWeight(.bold)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 7)
+                                .background(selectedFilterWorkerId == w.id ? Color.blue : Color.fieldBackground)
+                                .foregroundColor(selectedFilterWorkerId == w.id ? .white : .primary)
+                                .cornerRadius(10)
+                        }
+                    }
+                }
+            }
+        }
+        .padding(14)
+        .background(Color.cardBackground)
+        .cornerRadius(18)
+        .shadow(color: .black.opacity(0.05), radius: 6, y: 2)
+        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var actionExportCardView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+                Circle()
+                    .fill(LinearGradient(
+                        colors: [Color.blue, Color.purple],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ))
+                    .frame(width: 42, height: 42)
+                    .overlay(Image(systemName: "tablecells.fill").foregroundColor(.white).font(.system(size: 18, weight: .bold)))
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(lang.isArabic ? "جدول وتقرير الشهر الذكي" : "Echte Monats-Tabelle & Export")
+                        .font(.subheadline)
+                        .fontWeight(.bold)
+                    Text(lang.isArabic ? "تصدير مباشر كجدول إكسل منسق أو نسخ فوري" : "Als echte Excel-Tabelle (.xls), CSV oder per 1-Klick Kopieren")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                }
+            }
+            
+            Divider()
+            
+            VStack(spacing: 8) {
+                Button(action: prepareAndShareExcelTable) {
+                    HStack {
+                        Image(systemName: "tablecells.badge.ellipsis")
+                        Text(lang.isArabic ? "تصدير كجدول إكسل حقيقي (.xls)" : "Echte Excel-Tabelle erstellen & teilen (.xls)")
+                            .fontWeight(.bold)
+                    }
+                    .font(.footnote)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 13)
+                    .background(Color.green)
+                    .foregroundColor(.white)
+                    .cornerRadius(12)
+                    .shadow(color: Color.green.opacity(0.25), radius: 5, y: 2)
+                }
+                
+                HStack(spacing: 8) {
+                    Button(action: copyForTable) {
+                        HStack(spacing: 5) {
+                            Image(systemName: copiedNotice ? "checkmark.circle.fill" : "doc.on.doc.fill")
+                            Text(copiedNotice
+                                 ? (lang.isArabic ? "تم النسخ!" : "Kopiert!")
+                                 : (lang.isArabic ? "نسخ للجدول" : "Tabelle kopieren"))
+                                .fontWeight(.bold)
+                        }
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background(copiedNotice ? Color.green : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                    
+                    Button(action: prepareAndShareCSV) {
+                        HStack(spacing: 5) {
+                            Image(systemName: "square.and.arrow.up")
+                            Text(lang.isArabic ? "ملف CSV" : "Als CSV-Tabelle")
+                                .fontWeight(.bold)
+                        }
+                        .font(.caption)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background(Color.fieldBackground)
+                        .foregroundColor(.primary)
+                        .cornerRadius(12)
+                    }
+                }
+            }
+        }
+        .padding(16)
+        .background(Color.cardBackground)
+        .cornerRadius(18)
+        .shadow(color: .black.opacity(0.05), radius: 8, y: 3)
+        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var copiedNoticeBanner: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "checkmark.seal.fill")
+                .foregroundColor(.green)
+            Text(lang.isArabic
+                 ? "تم نسخ الجدول! الصقه مباشرة في إكسل أو جداول غوغل."
+                 : "Tabelle in der Zwischenablage! Einfach in Excel, Numbers oder Google Sheets einfügen.")
+                .font(.caption)
+                .fontWeight(.semibold)
+                .foregroundColor(.green)
+        }
+        .padding(12)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color.green.opacity(0.12))
+        .cornerRadius(12)
+        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var viewModePicker: some View {
+        Picker("Ansicht", selection: $activePreviewTab) {
+            Text(lang.isArabic ? "📊 جدول حقيقي" : "📊 Echte Tabelle").tag(0)
+            Text(lang.isArabic ? "📄 تقرير نصي" : "📄 Text-Bericht").tag(1)
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal, 16)
+    }
+
+    @ViewBuilder
+    private var visualTable1View: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "person.2.crop.square.stack.fill")
+                    .foregroundColor(.blue)
+                Text(lang.isArabic ? "الجدول 1: محاسبة العمال والرواتب" : "Tabelle 1: Monatsabrechnung & Löhne")
+                    .font(.caption)
+                    .fontWeight(.black)
+                    .textCase(.uppercase)
+                Spacer()
+                Text(lang.isArabic ? "اسحب لليمين/اليسار ↔" : "Horizontal scrollen ↔")
+                    .font(.system(size: 9, weight: .semibold))
+                    .foregroundColor(.secondary)
+            }
+            .padding(.horizontal, 16)
+            
+            ScrollView(.horizontal, showsIndicators: true) {
+                VStack(spacing: 0) {
+                    HStack(spacing: 0) {
+                        tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 115, align: .leading)
+                        tableHeaderCell(lang.isArabic ? "أيام" : "Tage", width: 48, align: .trailing)
+                        tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 68, align: .trailing)
+                        tableHeaderCell(lang.isArabic ? "الساعة" : "Lohn/h", width: 68, align: .trailing)
+                        tableHeaderCell(lang.isArabic ? "الراتب الإجمالي" : "Gesamtlohn", width: 88, align: .trailing)
+                        tableHeaderCell(lang.isArabic ? "العميل AR/h" : "Kunden-AR/h", width: 86, align: .trailing)
+                        tableHeaderCell(lang.isArabic ? "العميل الإجمالي" : "Kunden-AR Gesamt", width: 96, align: .trailing)
+                    }
+                    .background(Color(red: 0.12, green: 0.23, blue: 0.54))
+                    
+                    ForEach(Array(summaryRows.enumerated()), id: \.element.id) { index, row in
+                        HStack(spacing: 0) {
+                            tableDataCell(row.workerName, width: 115, align: .leading, isBold: true)
+                            tableDataCell("\(row.days)", width: 48, align: .trailing)
+                            tableDataCell("\(TimeCalculations.formatHours(row.hours)) h", width: 68, align: .trailing, isBold: true)
+                            tableDataCell(TimeCalculations.formatCurrency(row.workerRate), width: 68, align: .trailing)
+                            tableDataCell(TimeCalculations.formatCurrency(row.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
+                            tableDataCell(TimeCalculations.formatCurrency(row.clientRate), width: 86, align: .trailing)
+                            tableDataCell(TimeCalculations.formatCurrency(row.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
+                        }
+                        .background(index % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
+                        Divider()
+                    }
+                    
+                    HStack(spacing: 0) {
+                        tableDataCell(lang.isArabic ? "المجموع" : "GESAMT", width: 115, align: .leading, isBold: true)
+                        tableDataCell("\(totalSummary.days)", width: 48, align: .trailing, isBold: true)
+                        tableDataCell("\(TimeCalculations.formatHours(totalSummary.hours)) h", width: 68, align: .trailing, isBold: true)
+                        tableDataCell("-", width: 68, align: .trailing)
+                        tableDataCell(TimeCalculations.formatCurrency(totalSummary.baseWage), width: 88, align: .trailing, color: .green, isBold: true)
+                        tableDataCell("-", width: 86, align: .trailing)
+                        tableDataCell(TimeCalculations.formatCurrency(totalSummary.clientAR), width: 96, align: .trailing, color: .blue, isBold: true)
+                    }
+                    .background(Color.blue.opacity(0.12))
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 14))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14)
+                        .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                )
+                .padding(.horizontal, 16)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var visualTable2View: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack {
+                Image(systemName: "calendar.day.timeline.left")
+                    .foregroundColor(.purple)
+                Text(lang.isArabic ? "الجدول 2: تفصيل أيام العمل (\(filteredEntries.count))" : "Tabelle 2: Einzelaufstellung Einsatztage (\(filteredEntries.count))")
+                    .font(.caption)
+                    .fontWeight(.black)
+                    .textCase(.uppercase)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            
+            if filteredEntries.isEmpty {
+                Text(lang.isArabic ? "لا توجد إدخالات مسجلة لهذا الشهر." : "Keine Tage für diesen Filter im gewählten Monat eingetragen.")
+                    .font(.footnote)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(20)
+                    .background(Color.cardBackground)
+                    .cornerRadius(14)
+                    .padding(.horizontal, 16)
+            } else {
+                ScrollView(.horizontal, showsIndicators: true) {
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            tableHeaderCell(lang.isArabic ? "التاريخ" : "Datum", width: 86, align: .leading)
+                            tableHeaderCell(lang.isArabic ? "العامل" : "Mitarbeiter", width: 100, align: .leading)
+                            tableHeaderCell(lang.isArabic ? "الوقت" : "Uhrzeit", width: 92, align: .center)
+                            tableHeaderCell(lang.isArabic ? "استراحة" : "Pause", width: 54, align: .trailing)
+                            tableHeaderCell(lang.isArabic ? "ساعات" : "Stunden", width: 66, align: .trailing)
+                            tableHeaderCell(lang.isArabic ? "الموقع / الورشة" : "Baustelle / Einsatzort", width: 190, align: .leading)
+                        }
+                        .background(Color(red: 0.18, green: 0.16, blue: 0.45))
+                        
+                        ForEach(Array(filteredEntries.enumerated()), id: \.element.id) { idx, e in
+                            let wName = workers.first(where: { $0.id == e.userId })?.displayName ?? "Mitarbeiter"
+                            HStack(spacing: 0) {
+                                tableDataCell(e.date, width: 86, align: .leading, isBold: true)
+                                tableDataCell(wName, width: 100, align: .leading)
+                                tableDataCell("\(e.startTime)–\(e.endTime)", width: 92, align: .center)
+                                tableDataCell("\(e.breakMinutes)m", width: 54, align: .trailing)
+                                tableDataCell("\(TimeCalculations.formatHours(e.decimalHours)) h", width: 66, align: .trailing, color: .blue, isBold: true)
+                                tableDataCell(e.siteDescription, width: 190, align: .leading)
+                            }
+                            .background(idx % 2 == 0 ? Color.cardBackground : Color.fieldBackground.opacity(0.55))
+                            Divider()
+                        }
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 14)
+                            .stroke(Color.secondary.opacity(0.25), lineWidth: 1)
+                    )
+                    .padding(.horizontal, 16)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var textReportView: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lang.isArabic ? "معاينة التقرير النصي" : "Textbericht-Vorschau")
+                .font(.caption)
+                .fontWeight(.bold)
+                .foregroundColor(.secondary)
+                .textCase(.uppercase)
+                .padding(.horizontal, 16)
+            
+            Text(formattedReportText)
+                .font(.system(size: 11, design: .monospaced))
+                .lineSpacing(3)
+                .padding(14)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Color.cardBackground)
+                .cornerRadius(14)
+                .padding(.horizontal, 16)
         }
     }
     
