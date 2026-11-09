@@ -5,7 +5,9 @@ import UIKit
 
 struct ProfileView: View {
     @EnvironmentObject var authVM: AuthViewModel
+    @EnvironmentObject var timeVM: TimeTrackingViewModel
     @EnvironmentObject var lang: LanguageManager
+    @State private var syncSuccessBanner: Bool = false
     
     var body: some View {
         ScrollView {
@@ -88,6 +90,124 @@ struct ProfileView: View {
                 .cornerRadius(22)
                 .shadow(color: .black.opacity(0.05), radius: 8, y: 4)
                 .padding(.horizontal, 16)
+                
+                // MARK: - Cloud-Synchronisierung Card
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack {
+                        Image(systemName: "icloud.and.arrow.up.fill")
+                            .foregroundColor(.blue)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(lang.isArabic ? "المزامنة السحابية نشطة" : "Echtzeit Cloud-Synchronisierung")
+                                .font(.subheadline)
+                                .fontWeight(.bold)
+                            Text(lang.isArabic
+                                 ? "يتم نقل جميع الحسابات والساعات تلقائياً بين جميع الأجهزة"
+                                 : "Alle Konten, Zeiten & Abrechnungen werden automatisch übertragen.")
+                                .font(.system(size: 11))
+                                .foregroundColor(.secondary)
+                        }
+                        Spacer()
+                    }
+                    
+                    Button(action: {
+                        Task {
+                            await authVM.syncWithCloud()
+                            await timeVM.syncWithCloud()
+                            syncSuccessBanner = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                                syncSuccessBanner = false
+                            }
+                        }
+                    }) {
+                        HStack {
+                            if authVM.isSyncing || timeVM.isSyncing {
+                                ProgressView()
+                                    .tint(.white)
+                            } else {
+                                Image(systemName: syncSuccessBanner ? "checkmark.circle.fill" : "arrow.triangle.2.circlepath")
+                            }
+                            Text(syncSuccessBanner
+                                 ? (lang.isArabic ? "تمت المزامنة بنجاح!" : "Erfolgreich synchronisiert!")
+                                 : (lang.isArabic ? "مزامنة البيانات الآن" : "Jetzt mit Cloud synchronisieren"))
+                                .font(.caption)
+                                .fontWeight(.bold)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 11)
+                        .background(syncSuccessBanner ? Color.green : Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+                }
+                .padding(16)
+                .background(Color.cardBackground)
+                .cornerRadius(18)
+                .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
+                .padding(.horizontal, 16)
+                
+                // MARK: - Schnell-Kontowechsel (zwischen vorhandenen Konten wechseln)
+                if authVM.users.count > 1 {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text(lang.isArabic ? "تبديل الحساب السريع" : "Zwischen Konten wechseln (\(authVM.users.count))")
+                            .font(.caption)
+                            .fontWeight(.bold)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                        
+                        ForEach(authVM.users) { u in
+                            let isCurrent = (authVM.currentUser?.id == u.id)
+                            Button(action: {
+                                authVM.switchUser(to: u)
+                                if u.role == .member {
+                                    timeVM.selectedWorkerId = u.id
+                                }
+                            }) {
+                                HStack {
+                                    Circle()
+                                        .fill(u.role == .owner ? Color.orange.opacity(0.2) : Color.blue.opacity(0.2))
+                                        .frame(width: 28, height: 28)
+                                        .overlay(
+                                            Image(systemName: u.role == .owner ? "crown.fill" : "person.fill")
+                                                .font(.system(size: 12))
+                                                .foregroundColor(u.role == .owner ? .orange : .blue)
+                                        )
+                                    VStack(alignment: .leading, spacing: 1) {
+                                        Text(u.displayName)
+                                            .font(.footnote)
+                                            .fontWeight(.bold)
+                                            .foregroundColor(.primary)
+                                        Text(u.email)
+                                            .font(.system(size: 10))
+                                            .foregroundColor(.secondary)
+                                    }
+                                    Spacer()
+                                    if isCurrent {
+                                        Text(lang.isArabic ? "نشط" : "Aktiv")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 3)
+                                            .background(Color.green.opacity(0.15))
+                                            .foregroundColor(.green)
+                                            .cornerRadius(6)
+                                    } else {
+                                        Text(lang.isArabic ? "تبديل" : "Wechseln")
+                                            .font(.system(size: 10, weight: .bold))
+                                            .foregroundColor(.blue)
+                                    }
+                                }
+                                .padding(10)
+                                .background(isCurrent ? Color.blue.opacity(0.06) : Color.fieldBackground.opacity(0.5))
+                                .cornerRadius(12)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(16)
+                    .background(Color.cardBackground)
+                    .cornerRadius(18)
+                    .shadow(color: .black.opacity(0.04), radius: 6, y: 2)
+                    .padding(.horizontal, 16)
+                }
                 
                 // MARK: - Privacy Guarantee Banner
                 HStack(alignment: .top, spacing: 12) {

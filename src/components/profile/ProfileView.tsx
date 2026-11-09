@@ -1,12 +1,27 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTimeTracking } from '../../context/TimeTrackingContext';
 import { formatCurrency } from '../../utils/timeCalculations';
-import { HardHat, ShieldCheck, Mail, LogOut, Smartphone, Share, PlusSquare, Lock } from 'lucide-react';
+import { HardHat, ShieldCheck, LogOut, Smartphone, Share, PlusSquare, Lock, RefreshCw, CheckCircle2, Cloud } from 'lucide-react';
 
 export const ProfileView: React.FC = () => {
-  const { currentUser, isOwner, logout } = useAuth();
+  const { currentUser, users, isOwner, logout, switchUser, refreshUsers } = useAuth();
+  const { refreshData } = useTimeTracking();
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncDone, setSyncDone] = useState(false);
 
   if (!currentUser) return null;
+
+  const handleManualSync = async () => {
+    setIsSyncing(true);
+    try {
+      await Promise.all([refreshUsers(), refreshData()]);
+      setSyncDone(true);
+      setTimeout(() => setSyncDone(false), 3000);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto px-4 pb-safe-tab pt-2 space-y-4">
@@ -43,6 +58,82 @@ export const ProfileView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Cloud Sync Card */}
+      <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 space-y-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+            <Cloud className="w-5 h-5" />
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-slate-900">Echtzeit Cloud-Synchronisierung</h3>
+            <p className="text-xs text-slate-500">
+              Alle Konten, Zeiten & Abrechnungen werden automatisch zwischen Web & iPhone übertragen.
+            </p>
+          </div>
+        </div>
+
+        <button
+          onClick={handleManualSync}
+          disabled={isSyncing}
+          className={`ios-touch w-full py-3 px-4 rounded-2xl font-bold text-xs flex items-center justify-center gap-2 transition ${
+            syncDone
+              ? 'bg-emerald-600 text-white'
+              : 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+          }`}
+        >
+          {syncDone ? (
+            <>
+              <CheckCircle2 className="w-4 h-4" />
+              <span>Erfolgreich synchronisiert!</span>
+            </>
+          ) : (
+            <>
+              <RefreshCw className={`w-4 h-4 ${isSyncing ? 'animate-spin' : ''}`} />
+              <span>{isSyncing ? 'Synchronisiere...' : 'Jetzt mit Cloud synchronisieren'}</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {/* Quick Account Switcher */}
+      {users.length > 1 && (
+        <div className="bg-white rounded-3xl p-5 shadow-sm border border-slate-200/90 space-y-2.5">
+          <div className="text-xs font-bold uppercase tracking-wider text-slate-500">
+            Zwischen Konten wechseln ({users.length})
+          </div>
+          <div className="space-y-2">
+            {users.map(u => {
+              const isCurrent = u.id === currentUser.id;
+              return (
+                <button
+                  key={u.id}
+                  onClick={() => switchUser(u.id)}
+                  className={`w-full p-3 rounded-2xl border text-left flex items-center justify-between transition ${
+                    isCurrent
+                      ? 'bg-blue-50/70 border-blue-200'
+                      : 'bg-slate-50 hover:bg-slate-100 border-slate-200/70'
+                  }`}
+                >
+                  <div>
+                    <div className="text-xs font-bold text-slate-900">
+                      {u.displayName} {u.role === 'owner' ? '👑' : ''}
+                    </div>
+                    <div className="text-[11px] text-slate-500">{u.email}</div>
+                  </div>
+                  {isCurrent ? (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-lg bg-emerald-100 text-emerald-700">
+                      Aktiv
+                    </span>
+                  ) : (
+                    <span className="text-xs font-bold text-blue-600">Wechseln →</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Strict Privacy Notice */}
       <div className="bg-emerald-50/80 border border-emerald-200/80 rounded-3xl p-4 flex items-start gap-3">

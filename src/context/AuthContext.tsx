@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { UserProfile } from '../types';
 import { getDbUsers, saveDbUser } from '../firebase/firestoreService';
-import { isConfigured, auth } from '../firebase/config';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as fbSignOut } from 'firebase/auth';
+import { isConfigured } from '../firebase/config';
 
 interface AuthContextType {
   currentUser: UserProfile | null;
@@ -62,35 +61,22 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   useEffect(() => {
     refreshUsers();
+    const interval = setInterval(() => {
+      refreshUsers();
+    }, 8000);
+    return () => clearInterval(interval);
   }, []);
 
   const login = async (email: string, password?: string): Promise<{ success: boolean; error?: string }> => {
     const cleanEmail = email.trim().toLowerCase();
 
-    // If real Firebase Auth is configured and credentials are supplied
-    if (isConfigured && auth && password) {
-      try {
-        const userCred = await signInWithEmailAndPassword(auth, cleanEmail, password);
-        const all = await getDbUsers();
-        const found = all.find(u => u.email.toLowerCase() === cleanEmail || u.id === userCred.user.uid);
-        if (found) {
-          setCurrentUser(found);
-          localStorage.setItem(CURRENT_USER_SESSION_KEY, found.id);
-          return { success: true };
-        }
-      } catch (err: any) {
-        console.warn('Firebase auth failed, checking local profiles:', err.message);
-      }
-    }
-
-    // Local / direct lookup
     const allUsers = await getDbUsers();
     const matched = allUsers.find(u => u.email.toLowerCase() === cleanEmail);
 
     if (!matched) {
       return {
         success: false,
-        error: 'Kein Konto mit dieser E-Mail-Adresse gefunden. Bitte prüfe die Eingabe oder wende dich an den Inhaber.'
+        error: 'Kein Konto mit dieser E-Mail-Adresse gefunden. Bitte erstelle zuerst ein neues Konto oder nutze den Schnell-Start.'
       };
     }
 
@@ -108,24 +94,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const cleanEmail = email.trim().toLowerCase();
     const displayName = (name && name.trim()) || cleanEmail.split('@')[0];
 
-    let userId = `user_${Date.now()}`;
+    const allUsers = await getDbUsers();
 
-    // If real Firebase Auth is active
-    if (isConfigured && auth && password) {
-      try {
-        const userCred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-        userId = userCred.user.uid;
-      } catch (err: any) {
-        return { success: false, error: err.message || 'Registrierung bei Firebase fehlgeschlagen.' };
-      }
+    // Smart Account Linking: Falls Konto mit dieser E-Mail schon vom Chef oder auf anderem Gerät angelegt wurde, direkt verknüpfen!
+    const existing = allUsers.find(u => u.email.toLowerCase() === cleanEmail);
+    if (existing) {
+      const updatedUser: UserProfile = {
+        ...existing,
+        displayName: (name && name.trim()) ? name.trim() : existing.displayName,
+        role: role === 'owner' ? 'owner' : existing.role
+      };
+      await saveDbUser(updatedUser);
+      await refreshUsers();
+      setCurrentUser(updatedUser);
+      localStorage.setItem(CURRENT_USER_SESSION_KEY, updatedUser.id);
+      return { success: true };
     }
 
-    const allUsers = await getDbUsers();
-    // Default to owner if it's the very first user or explicitly requested
     const assignedRole: 'owner' | 'member' = role || (allUsers.length === 0 ? 'owner' : 'member');
-
     const newUser: UserProfile = {
-      id: userId,
+      id: `user_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
       email: cleanEmail,
       displayName,
       role: assignedRole,
@@ -143,11 +131,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = () => {
-    if (isConfigured && auth) {
-      try {
-        fbSignOut(auth);
-      } catch (_) {}
-    }
     setCurrentUser(null);
     localStorage.removeItem(CURRENT_USER_SESSION_KEY);
   };
@@ -167,9 +150,21 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     clientRate: number = 35.00,
     phone?: string
   ): Promise<{ success: boolean; error?: string }> => {
-    const cleanEmail = email.trim().toLowerCase();
-    if (users.some(u => u.email.toLowerCase() === cleanEmail)) {
-      return { success: false, error: 'Ein Mitarbeiter mit dieser E-Mail existiert bereits.' };
+    const cleanEmail = email.trim().toLowerCase() || `mitarbeiter_${Date.now()}@bauzeit.de`;
+    const allUsers = await getDbUsers();
+    const existing = allUsers.find(u => u.email.toLowerCase() === cleanEmail);
+
+    if (existing) {
+      const updated: UserProfile = {
+        ...existing,
+        displayName: name.trim() || existing.displayName,
+        workerRate: workerRate > 0 ? workerRate : existing.workerRate,
+        clientRate: clientRate > 0 ? clientRate : existing.clientRate,
+        phoneNumber: phone?.trim() || existing.phoneNumber
+      };
+      await saveDbUser(updated);
+      await refreshUsers();
+      return { success: true };
     }
 
     const colors = ['bg-blue-600', 'bg-emerald-600', 'bg-purple-600', 'bg-amber-600', 'bg-rose-600', 'bg-indigo-600'];
@@ -178,7 +173,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const newWorker: UserProfile = {
       id: `user_worker_${Date.now()}`,
       email: cleanEmail,
-      displayName: name.trim(),
+      displayName: name.trim() || 'Mitarbeiter',
       role: 'member',
       workerRate: workerRate > 0 ? workerRate : 12.00,
       clientRate: clientRate > 0 ? clientRate : 35.00,
@@ -211,7 +206,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     const isChef = role === 'owner';
     const newAccount: UserProfile = {
-      id: `user_${role}_${Date.now()}`,
+      id: isChef ? 'user_owner_default' : 'user_member_default',
       email: isChef ? 'chef@bauzeit.de' : 'mitarbeiter@bauzeit.de',
       displayName: isChef ? 'Chef (Inhaber)' : 'Mitarbeiter',
       role,

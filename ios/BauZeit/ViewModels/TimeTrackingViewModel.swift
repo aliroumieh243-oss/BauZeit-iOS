@@ -1,22 +1,37 @@
 import Foundation
 import Combine
 
+@MainActor
 class TimeTrackingViewModel: ObservableObject {
     @Published var selectedMonth: String
     @Published var selectedWorkerId: String = ""
     @Published var allEntries: [TimeEntry] = []
     @Published var allSettlements: [MonthlySettlement] = []
+    @Published var isSyncing: Bool = false
     
     private let entriesKey = "bauzeit_ios_entries"
     private let settlementsKey = "bauzeit_ios_settlements"
+    private var syncTimer: Timer?
     
     init() {
-        // Standardmäßig auf den aktuellen Monat einstellen (z. B. "2026-10")
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM"
         self.selectedMonth = formatter.string(from: Date())
         
         loadData()
+        Task {
+            await syncWithCloud()
+        }
+        startAutoSyncTimer()
+    }
+    
+    private func startAutoSyncTimer() {
+        syncTimer?.invalidate()
+        syncTimer = Timer.scheduledTimer(withTimeInterval: 8.0, repeats: true) { [weak self] _ in
+            Task { @MainActor in
+                await self?.syncWithCloud()
+            }
+        }
     }
     
     func loadData() {
@@ -42,6 +57,41 @@ class TimeTrackingViewModel: ObservableObject {
         if let encoded = try? JSONEncoder().encode(allSettlements) {
             UserDefaults.standard.set(encoded, forKey: settlementsKey)
         }
+    }
+    
+    /// Synchronisiert alle Zeiteinträge und Monatsabrechnungen bidirektional mit Firebase Cloud Firestore
+    func syncWithCloud() async {
+        isSyncing = true
+        defer { isSyncing = false }
+        
+        async let cloudEntriesTask = CloudSyncManager.shared.fetchCloudEntries()
+        async let cloudSettlementsTask = CloudSyncManager.shared.fetchCloudSettlements()
+        
+        let (fetchedEntries, fetchedSettlements) = await (cloudEntriesTask, cloudSettlementsTask)
+        
+        if let cloudEntries = fetchedEntries {
+            var mergedEntries = cloudEntries
+            for local in allEntries {
+                if !mergedEntries.contains(where: { $0.id == local.id || ($0.userId == local.userId && $0.date == local.date) }) {
+                    mergedEntries.append(local)
+                    await CloudSyncManager.shared.pushEntry(local)
+                }
+            }
+            self.allEntries = mergedEntries
+        }
+        
+        if let cloudSettlements = fetchedSettlements {
+            var mergedSettlements = cloudSettlements
+            for local in allSettlements {
+                if !mergedSettlements.contains(where: { $0.userId == local.userId && $0.month == local.month }) {
+                    mergedSettlements.append(local)
+                    await CloudSyncManager.shared.pushSettlement(local)
+                }
+            }
+            self.allSettlements = mergedSettlements
+        }
+        
+        saveData()
     }
     
     func getFilteredEntries(for userId: String, month: String) -> [TimeEntry] {
@@ -83,7 +133,8 @@ class TimeTrackingViewModel: ObservableObject {
             breakMinutes: breakMinutes
         )
         
-        let entryId = id ?? UUID().uuidString
+        let existingForDate = allEntries.first(where: { $0.userId == userId && $0.date == date })
+        let entryId = id ?? existingForDate?.id ?? "entry_\(userId)_\(date)"
         let newEntry = TimeEntry(
             id: entryId,
             userId: userId,
@@ -110,11 +161,17 @@ class TimeTrackingViewModel: ObservableObject {
         }
         
         saveData()
+        Task {
+            await CloudSyncManager.shared.pushEntry(newEntry)
+        }
     }
     
     func deleteEntry(id: String) {
         allEntries.removeAll { $0.id == id }
         saveData()
+        Task {
+            await CloudSyncManager.shared.deleteCloudEntry(id: id)
+        }
     }
     
     func updateSettlement(
@@ -146,6 +203,9 @@ class TimeTrackingViewModel: ObservableObject {
         }
         
         saveData()
+        Task {
+            await CloudSyncManager.shared.pushSettlement(updated)
+        }
     }
     
     // MARK: - Month Navigation Helpers

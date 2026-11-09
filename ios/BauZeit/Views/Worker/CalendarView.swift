@@ -168,6 +168,39 @@ struct CalendarView: View {
             .padding(.vertical, 12)
             .background(Color.cardBackground)
             
+            // MARK: - Worker Selector (nur für Inhaber sichtbar)
+            if authVM.isOwner {
+                let workers = authVM.users.filter { $0.role == .member }
+                if !workers.isEmpty {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(workers) { w in
+                                let isSelected = (activeUserId == w.id)
+                                Button(action: {
+                                    timeVM.selectedWorkerId = w.id
+                                }) {
+                                    HStack(spacing: 5) {
+                                        Image(systemName: "person.fill")
+                                            .font(.system(size: 10))
+                                        Text(w.displayName)
+                                            .font(.caption)
+                                            .fontWeight(.bold)
+                                    }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(isSelected ? Color.blue : Color.fieldBackground)
+                                    .foregroundColor(isSelected ? .white : .primary)
+                                    .cornerRadius(10)
+                                }
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.bottom, 8)
+                    }
+                    .background(Color.cardBackground)
+                }
+            }
+            
             // MARK: - Kompakte KPI Monats-Karten
             HStack(spacing: 10) {
                 // Stunden
@@ -407,7 +440,20 @@ struct CalendarView: View {
             )
         }
         .onAppear {
-            syncSelectedMonth()
+            let parts = timeVM.selectedMonth.split(separator: "-").compactMap { Int($0) }
+            if parts.count == 2 {
+                year = parts[0]
+                month = parts[1]
+            } else {
+                syncSelectedMonth()
+            }
+        }
+        .onChange(of: timeVM.selectedMonth) { newVal in
+            let parts = newVal.split(separator: "-").compactMap { Int($0) }
+            if parts.count == 2 && (parts[0] != year || parts[1] != month) {
+                year = parts[0]
+                month = parts[1]
+            }
         }
     }
     

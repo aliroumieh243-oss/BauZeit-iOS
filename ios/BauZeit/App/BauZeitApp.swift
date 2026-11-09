@@ -28,15 +28,24 @@ struct BauZeitApp: App {
     @StateObject private var authVM = AuthViewModel()
     @StateObject private var timeVM = TimeTrackingViewModel()
     @StateObject private var lang = LanguageManager()
+    @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
             MainContentView()
-                .id(lang.currentLanguage)
+                .id("\(lang.currentLanguage.rawValue)_\(authVM.currentUser?.id ?? "guest")")
                 .environmentObject(authVM)
                 .environmentObject(timeVM)
                 .environmentObject(lang)
                 .environment(\.layoutDirection, lang.isArabic ? .rightToLeft : .leftToRight)
+                .onChange(of: scenePhase) { newPhase in
+                    if newPhase == .active {
+                        Task {
+                            await authVM.syncWithCloud()
+                            await timeVM.syncWithCloud()
+                        }
+                    }
+                }
         }
     }
 }
@@ -117,7 +126,11 @@ struct OwnerTabView: View {
             }
             
             NavigationView {
-                CalendarView(targetUserId: authVM.users.first(where: { $0.role == .member })?.id)
+                CalendarView(
+                    targetUserId: timeVM.selectedWorkerId.isEmpty
+                        ? authVM.users.first(where: { $0.role == .member })?.id
+                        : timeVM.selectedWorkerId
+                )
                     .navigationTitle(lang.text("Zeiterfassung"))
                     #if os(iOS)
                     .navigationBarTitleDisplayMode(.inline)

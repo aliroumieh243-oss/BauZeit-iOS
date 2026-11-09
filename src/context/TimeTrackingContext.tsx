@@ -117,6 +117,10 @@ export const TimeTrackingProvider: React.FC<{ children: ReactNode }> = ({ childr
 
   useEffect(() => {
     refreshData();
+    const interval = setInterval(() => {
+      refreshData();
+    }, 8000);
+    return () => clearInterval(interval);
   }, [selectedMonth, selectedWorkerId, currentUser, users.length]);
 
   // Determine current active rates

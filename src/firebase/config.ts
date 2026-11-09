@@ -13,10 +13,20 @@ export interface FirebaseConfigParams {
 
 const STORAGE_KEY = 'bauzeit_firebase_custom_config';
 
+// Built-in default configuration for papa-zeitverfassung-app
+const DEFAULT_FIREBASE_CONFIG: FirebaseConfigParams = {
+  apiKey: 'AIzaSyCDmBOHHJ8vp99GfFcV85Yreh9ZZvcDGXU',
+  authDomain: 'papa-zeitverfassung-app.firebaseapp.com',
+  projectId: 'papa-zeitverfassung-app',
+  storageBucket: 'papa-zeitverfassung-app.firebasestorage.app',
+  messagingSenderId: '929730877647',
+  appId: '1:929730877647:ios:f4ff606f8a85da177cbfba'
+};
+
 /**
- * Get active Firebase configuration from localStorage or Vite environment variables
+ * Get active Firebase configuration from localStorage, Vite env, or built-in default
  */
-export function getStoredFirebaseConfig(): FirebaseConfigParams | null {
+export function getStoredFirebaseConfig(): FirebaseConfigParams {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
@@ -29,21 +39,16 @@ export function getStoredFirebaseConfig(): FirebaseConfigParams | null {
     console.warn('Failed to parse stored Firebase config', err);
   }
 
-  // Fallback to import.meta.env
   const envConfig: FirebaseConfigParams = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || '',
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || '',
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || '',
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || '',
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || '',
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || ''
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || DEFAULT_FIREBASE_CONFIG.apiKey,
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || DEFAULT_FIREBASE_CONFIG.authDomain,
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || DEFAULT_FIREBASE_CONFIG.projectId,
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || DEFAULT_FIREBASE_CONFIG.storageBucket,
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || DEFAULT_FIREBASE_CONFIG.messagingSenderId,
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || DEFAULT_FIREBASE_CONFIG.appId
   };
 
-  if (envConfig.apiKey && envConfig.projectId) {
-    return envConfig;
-  }
-
-  return null;
+  return envConfig;
 }
 
 export function saveFirebaseConfig(config: FirebaseConfigParams) {
