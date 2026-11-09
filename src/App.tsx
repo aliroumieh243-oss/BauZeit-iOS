@@ -9,6 +9,7 @@ import { WorkerSummaryView } from './components/worker/WorkerSummaryView';
 import { ProfileView } from './components/profile/ProfileView';
 import { OwnerDashboard } from './components/owner/OwnerDashboard';
 import { TeamManagementView } from './components/owner/TeamManagementView';
+import { t } from './utils/language';
 
 const AppContent: React.FC = () => {
   const { currentUser, isOwner, isLoading } = useAuth();
@@ -35,24 +36,27 @@ const AppContent: React.FC = () => {
 
   if (isOwner) {
     if (activeTab === 'overview') {
-      pageTitle = 'Chef-Übersicht';
-      pageSubtitle = 'Abrechnung & Finanzen';
+      pageTitle = t('Chef-Übersicht');
+      pageSubtitle = t('Abrechnung & Finanzen');
     } else if (activeTab === 'calendar') {
-      pageTitle = 'Zeiterfassung';
-      pageSubtitle = 'Tageszeiten der Arbeiter';
+      pageTitle = t('Zeiterfassung');
+      pageSubtitle = t('Tageszeiten der Arbeiter');
     } else if (activeTab === 'team') {
-      pageTitle = 'Team & Sätze';
-      pageSubtitle = 'Mitarbeiterverwaltung';
+      pageTitle = t('Team & Sätze');
+      pageSubtitle = t('Mitarbeiterverwaltung');
+    } else if (activeTab === 'profile') {
+      pageTitle = t('Inhaber-Konto');
+      pageSubtitle = currentUser.displayName;
     }
   } else {
     if (activeTab === 'calendar') {
-      pageTitle = 'Mein Kalender';
-      pageSubtitle = 'Tägliche Zeiterfassung';
+      pageTitle = t('Mein Kalender');
+      pageSubtitle = t('Tägliche Zeiterfassung');
     } else if (activeTab === 'summary') {
-      pageTitle = 'Meine Abrechnung';
-      pageSubtitle = 'Lohn & Monatsstunden';
+      pageTitle = t('Meine Abrechnung');
+      pageSubtitle = t('Lohn & Monatsstunden');
     } else if (activeTab === 'profile') {
-      pageTitle = 'Mein Profil';
+      pageTitle = t('Mein Profil');
       pageSubtitle = currentUser.displayName;
     }
   }
@@ -72,6 +76,7 @@ const AppContent: React.FC = () => {
             )}
             {activeTab === 'calendar' && <CalendarView />}
             {activeTab === 'team' && <TeamManagementView />}
+            {activeTab === 'profile' && <ProfileView />}
           </>
         ) : (
           <>

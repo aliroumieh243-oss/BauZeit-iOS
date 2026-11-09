@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAuth } from '../../context/AuthContext';
-import { useLanguage } from '../../utils/language';
+import { useLanguage, t } from '../../utils/language';
 import { ShieldCheck, HardHat, LogOut, Globe } from 'lucide-react';
 
 interface HeaderProps {
@@ -21,12 +21,12 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
             {isOwner ? (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
                 <ShieldCheck className="w-3.5 h-3.5" />
-                Owner
+                {t('Inhaber')}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
                 <HardHat className="w-3.5 h-3.5" />
-                Mitarbeiter
+                {t('Mitarbeiter')}
               </span>
             )}
           </div>
@@ -37,7 +37,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
           {/* Language Switcher Button */}
           <button
             onClick={toggleLanguage}
-            title="Sprache wechseln / تغيير اللغة"
+            title={t('Sprache')}
             className="ios-touch px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1 transition"
           >
             <Globe className="w-3.5 h-3.5 text-blue-600" />
@@ -47,7 +47,7 @@ export const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
           {/* Logout */}
           <button
             onClick={logout}
-            title="Abmelden"
+            title={t('Abmelden')}
             className="ios-touch p-2 rounded-full bg-slate-100 hover:bg-red-50 text-slate-600 hover:text-red-600 transition"
           >
             <LogOut className="w-4 h-4" />

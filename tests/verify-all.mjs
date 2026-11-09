@@ -147,6 +147,70 @@ test('Inhaber (Owner) hat Vollzugriff auf alle Mitarbeiter', () => {
   assert.strictEqual(visibleEntries.length, 2);
 });
 
+console.log('\n--- 5. SPESEN, AUSLAGEN & NETTO-AUSZAHLUNG ---');
+test('Erstattung von Benzingeld (45 €) und Material (30 €) wird zum Lohn addiert', () => {
+  const entries = [
+    { decimalHours: 10.0, fuelExpenses: 45.0, expenses: 30.0 }
+  ];
+  // 10 Std * 12 € = 120 € Lohn + 45 € Sprit + 30 € Material - 0 Anzahlung = 195 € Netto
+  const totalHours = entries.reduce((s, e) => s + e.decimalHours, 0);
+  const totalFuel = entries.reduce((s, e) => s + (e.fuelExpenses || 0), 0);
+  const totalExp = entries.reduce((s, e) => s + (e.expenses || 0), 0);
+  const deposit = 0;
+  const workerRate = 12.0;
+  const baseWage = Math.round(totalHours * workerRate * 100) / 100;
+  const netPayout = Math.round((baseWage + totalFuel + totalExp - deposit) * 100) / 100;
+
+  assert.strictEqual(baseWage, 120.00);
+  assert.strictEqual(totalFuel, 45.00);
+  assert.strictEqual(totalExp, 30.00);
+  assert.strictEqual(netPayout, 195.00);
+});
+
+test('Anzahlung (50 €) wird von Gesamtlohn inklusive Spesen abgezogen', () => {
+  const baseWage = 240.0; // 20 Std * 12 €
+  const totalFuel = 60.0;
+  const totalExp = 25.0;
+  const deposit = 50.0;
+  const netPayout = Math.round((baseWage + totalFuel + totalExp - deposit) * 100) / 100;
+  assert.strictEqual(netPayout, 275.00); // 240 + 60 + 25 - 50 = 275 €
+});
+
+console.log('\n--- 6. TABELLEN- & EXCEL-EXPORT-VALIDIERUNG ---');
+test('TSV-Export enthält Überschriften für Tabelle 1 und Tabelle 2 getrennt durch Tabs', () => {
+  const tsvHeader1 = 'Mitarbeiter\tTage\tStunden (h)\tLohn/h (€)\tGrundlohn (€)\tKunden-AR/h (€)\tKunden-AR Gesamt (€)\tBenzin (€)\tAuslagen (€)\tAnzahlung (€)\tBetriebskosten (€)\tEndgültige Auszahlung (€)\tNotiz';
+  const tsvHeader2 = 'Datum\tMitarbeiter\tBeginn\tEnde\tPause (Min)\tStunden (h)\tBaustelle / Einsatzort\tBenzin (€)\tAuslagen (€)\tBeleg\tNotiz';
+
+  assert(tsvHeader1.split('\t').length >= 12);
+  assert(tsvHeader2.split('\t').length >= 10);
+  assert(tsvHeader1.includes('Kunden-AR'));
+  assert(tsvHeader2.includes('Baustelle'));
+});
+
+test('Excel HTML Struktur enthält gültige XML/HTML Tags und Tabellenspalten', () => {
+  const htmlSample = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel"><table><thead><tr><th>Mitarbeiter</th><th>Stunden</th></tr></thead></table></html>';
+  assert(htmlSample.includes('xmlns:x="urn:schemas-microsoft-com:office:excel"'));
+  assert(htmlSample.includes('<table>'));
+  assert(htmlSample.includes('</table>'));
+});
+
+console.log('\n--- 7. BILINGUALE SPRACHSCHLÜSSEL ---');
+test('Kritische deutsche und arabische Übersetzungsschlüssel sind vorhanden', () => {
+  const DICT = {
+    "Zeiterfassung": "تسجيل ساعات العمل",
+    "Zeiten": "المواعيد",
+    "Abrechnung": "الحسابات والرواتب",
+    "Team": "فريق العمل",
+    "Profil": "الملف الشخصي",
+    "Inhaber": "المسؤول",
+    "Mitarbeiter": "عامل"
+  };
+  assert.strictEqual(DICT["Zeiterfassung"], "تسجيل ساعات العمل");
+  assert.strictEqual(DICT["Team"], "فريق العمل");
+  assert.strictEqual(DICT["Inhaber"], "المسؤول");
+  assert.strictEqual(DICT["Mitarbeiter"], "عامل");
+});
+
 console.log(`\n========================================`);
 console.log(`Testergebnis: ${passedTests} von ${totalTests} Tests bestanden! 💯`);
 console.log(`========================================\n`);

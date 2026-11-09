@@ -169,7 +169,38 @@ class LanguageManager: ObservableObject {
             "KI-Monatsdokument & Tabellen-Export": "تقرير وتصدير الجدول الذكي",
             "In Tabelle einfügen (Kopieren)": "نسخ للجدول (إكسل)",
             "Als Excel / CSV teilen": "مشاركة كملف إكسل",
-            "In Zwischenablage kopiert!": "تم نسخ البيانات إلى الحافظة بنجاح!"
+            "In Zwischenablage kopiert!": "تم نسخ البيانات إلى الحافظة بنجاح!",
+            
+            // Neue Funktionen & Erweiterungen
+            "Team": "فريق العمل",
+            "Inhaber": "المسؤول",
+            "Mitarbeiter": "عامل",
+            "Team & Sätze": "فريق العمل والأجور",
+            "Mitarbeiterverwaltung": "إدارة الموظفين",
+            "Tageszeiten der Arbeiter": "أوقات عمل العمال",
+            "Tägliche Zeiterfassung": "تسجيل ساعات العمل اليومية",
+            "Mein Kalender": "تقويمي",
+            "Meine Abrechnung": "حساباتي وأجري",
+            "Lohn & Monatsstunden": "الراتب وساعات الشهر",
+            "Mitarbeiter auswählen": "اختيار العامل",
+            "Jetzt mit Cloud synchronisieren": "المزامنة مع السحابة الآن",
+            "Synchronisiere...": "جارٍ المزامنة...",
+            "Erfolgreich synchronisiert!": "تمت المزامنة بنجاح!",
+            "Echtzeit Cloud-Synchronisierung": "مزامنة سحابية مباشرة",
+            "Alle Konten, Zeiten & Abrechnungen werden automatisch zwischen Web & iPhone übertragen.": "تتم مزامنة جميع الحسابات والمواعيد تلقائياً بين الموقع والآيفون.",
+            "Zwischen Konten wechseln": "التبديل بين الحسابات",
+            "Wechseln →": "تبديل ←",
+            "Strikte Datentrennung aktiv": "عزل خصوصية البيانات مفعّل",
+            "Du kannst ausschließlich deine eigenen Arbeitszeiten und Baustelleneinsätze sehen. Andere Arbeiter haben keinerlei Einblick in deine Stunden oder Abrechnungen.": "يمكنك فقط الاطلاع على ساعات عملك ومواقعك الخاصة. لا يمكن لأي عامل آخر رؤية ساعاتك أو راتبك.",
+            "Als iPhone-App installieren": "تثبيت كتطبيق للآيفون",
+            "Vom Konto abmelden": "تسجيل الخروج من الحساب",
+            "Status": "الحالة",
+            "Aktiv": "نشط",
+            "Excel (.xls)": "ملف إكسل (.xls)",
+            "Echte Monats-Tabelle & Export": "جدول وتصدير الشهر الكامل",
+            "Monatsabrechnung bearbeiten": "تعديل حسابات الشهر",
+            "Alles bearbeiten": "تعديل الكل",
+            "Änderungen speichern": "حفظ التغييرات"
         ]
         
         return dict[key] ?? key

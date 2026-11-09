@@ -9,8 +9,16 @@ import { t } from '../../utils/language';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, HardHat } from 'lucide-react';
 
 export const CalendarView: React.FC = () => {
-  const { selectedMonth, setSelectedMonth, entries, calculations, saveEntry, deleteEntry, selectedWorkerId } =
-    useTimeTracking();
+  const {
+    selectedMonth,
+    setSelectedMonth,
+    entries,
+    calculations,
+    saveEntry,
+    deleteEntry,
+    selectedWorkerId,
+    setSelectedWorkerId
+  } = useTimeTracking();
   const { currentUser, isOwner, users } = useAuth();
 
   const [activeDayModal, setActiveDayModal] = useState<DayCalendarInfo | null>(null);
@@ -22,6 +30,15 @@ export const CalendarView: React.FC = () => {
   }, [selectedMonth]);
 
   const monthName = GERMAN_MONTHS_FULL[month - 1];
+
+  const currentRealMonth = useMemo(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  }, []);
+
+  const jumpToToday = () => {
+    setSelectedMonth(currentRealMonth);
+  };
 
   const days = useMemo(() => {
     return getDaysForMonth(selectedMonth, entries);
@@ -51,7 +68,7 @@ export const CalendarView: React.FC = () => {
 
   // Find who we are viewing (if owner is inspecting an employee)
   const inspectedUser = isOwner
-    ? users.find(u => u.id === selectedWorkerId)
+    ? users.find(u => u.id === selectedWorkerId) || users.find(u => u.role === 'member')
     : currentUser;
 
   return (
@@ -75,6 +92,14 @@ export const CalendarView: React.FC = () => {
             <h2 className="text-xl font-black text-slate-900 tracking-tight">
               {monthName} {year}
             </h2>
+            {selectedMonth !== currentRealMonth && (
+              <button
+                onClick={jumpToToday}
+                className="ios-touch mt-1 inline-block text-[10px] font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full hover:bg-blue-100 transition"
+              >
+                {t('Heute')}
+              </button>
+            )}
           </div>
 
           <button
@@ -86,14 +111,38 @@ export const CalendarView: React.FC = () => {
           </button>
         </div>
 
-        {/* Worker Info when in Owner mode */}
-        {isOwner && inspectedUser && (
-          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-            <span className="text-slate-500 font-medium">Zeiten für Mitarbeiter:</span>
-            <span className="font-bold text-slate-900 flex items-center gap-1">
-              <HardHat className="w-3.5 h-3.5 text-blue-600" />
-              {inspectedUser.displayName}
-            </span>
+        {/* Worker Selector Bar when in Owner mode */}
+        {isOwner && (
+          <div className="mt-3 pt-3 border-t border-slate-100">
+            <div className="flex items-center justify-between text-xs text-slate-500 font-medium mb-2">
+              <span className="flex items-center gap-1">
+                <HardHat className="w-3.5 h-3.5 text-blue-600" />
+                <span>{t('Mitarbeiter auswählen')}:</span>
+              </span>
+              {inspectedUser && (
+                <span className="font-bold text-slate-900">{inspectedUser.displayName}</span>
+              )}
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              {users
+                .filter(u => u.role === 'member')
+                .map(w => {
+                  const isSelected = (selectedWorkerId === w.id) || (!selectedWorkerId && w.id === inspectedUser?.id);
+                  return (
+                    <button
+                      key={w.id}
+                      onClick={() => setSelectedWorkerId(w.id)}
+                      className={`ios-touch px-3 py-1.5 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 ${
+                        isSelected
+                          ? 'bg-blue-600 text-white shadow-xs'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                      }`}
+                    >
+                      <span>{w.displayName}</span>
+                    </button>
+                  );
+                })}
+            </div>
           </div>
         )}
 
